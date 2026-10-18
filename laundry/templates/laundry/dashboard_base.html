@@ -1,0 +1,140 @@
+{% load static %}<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Beranda{% endblock %} - WuWashy Laundry</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Yellowtail&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'laundry/dashboard.css' %}">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-logo" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="13" r="4.5"/><path d="M9.5 13a2.5 2.5 0 0 1 3-2.4"/><circle cx="7" cy="7" r=".8"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20"/><path d="M12 8.5C10 8.5 7.5 7.8 7.5 6a2 2 0 0 1 4-.5L12 8.5zM12 8.5c2 0 4.5-.7 4.5-2.5a2 2 0 0 0-4-.5L12 8.5z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 1 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 1.5h-15L6 16.5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.5-1.5 2.5-4 2.5h-2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M10.3 3.5h3.4l.5 2.2 1.6.9 2.1-.8 1.7 3-1.6 1.5v1.8l1.6 1.5-1.7 3-2.1-.8-1.6.9-.5 2.2h-3.4l-.5-2.2-1.6-.9-2.1.8-1.7-3 1.6-1.5v-1.8L4.4 8.3l1.7-3 2.1.8 1.6-.9.5-2.2z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H9"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 1.5M5 4L3 6M19 4l2 2"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M8 16L16 8M9 8h7v7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M8 12h12M4 17h16"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Menu dashboard">
+    <a class="brand" href="{% url 'home' %}" aria-label="WuWashy - ke website">
+      <span class="brand-icon"><svg class="ic"><use href="#i-logo"/></svg></span>
+      <span class="brand-name">WuWashy</span>
+    </a>
+
+    <div class="me">
+      <span class="avatar" aria-hidden="true">{{ inisial }}</span>
+      <div>
+        <strong>{{ nama }}</strong>
+        <small>{% if peran == 'ADMIN' %}Administrator{% else %}Member sejak {{ user.date_joined|date:"Y" }}{% endif %}</small>
+      </div>
+    </div>
+
+    <p class="menu-label">Menu utama</p>
+    <nav class="menu">
+      {% block nav %}
+      {% with aktif=request.resolver_match.url_name %}
+      <a class="nav-item{% if aktif == 'dashboard' %} is-active{% endif %}" href="{% url 'dashboard' %}"{% if aktif == 'dashboard' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-home"/></svg>Beranda</a>
+      <a class="nav-item{% if aktif == 'pesanan_saya' %} is-active{% endif %}" href="{% url 'pesanan_saya' %}"{% if aktif == 'pesanan_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-logo"/></svg>Pesanan saya{% if pesanan_aktif %}<span class="badge">{{ pesanan_aktif }}</span>{% endif %}</a>
+      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-history"/></svg>Riwayat pesanan</span>
+      <a class="nav-item{% if aktif == 'poin_hadiah' %} is-active{% endif %}" href="{% url 'poin_hadiah' %}"{% if aktif == 'poin_hadiah' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-gift"/></svg>Poin &amp; hadiah</a>
+      {% endwith %}
+      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-pin"/></svg>Alamat saya</span>
+      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</span>
+      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-search"/></svg>Lacak resi</span>
+      {% endblock %}
+    </nav>
+
+    <div class="side-bottom">
+      <div class="help">
+        <svg class="ic"><use href="#i-headset"/></svg>
+        <strong>Butuh bantuan?</strong>
+        <p>Kami siap bantu cucianmu, setiap hari.</p>
+        <a href="https://wa.me/{{ whatsapp_admin }}" target="_blank" rel="noopener">Chat WhatsApp <svg class="ic"><use href="#i-ext"/></svg></a>
+      </div>
+      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</span>
+      <button class="nav-item" type="button" data-open-logout aria-haspopup="dialog"><svg class="ic"><use href="#i-logout"/></svg>Keluar</button>
+    </div>
+  </aside>
+  <div class="scrim" data-nav-close></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
+      <div class="title">
+        <h1>{% block heading %}Beranda{% endblock %}</h1>
+        <p>{% now "l, j F Y" %}</p>
+      </div>
+      {% block tools %}
+      <div class="tools">
+        <label class="search is-soon" title="Segera hadir">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input type="search" placeholder="Cari nomor pesanan..." aria-label="Cari nomor pesanan" disabled>
+        </label>
+        <span class="bell is-soon" title="Segera hadir" role="img" aria-label="Notifikasi (segera hadir)"><svg class="ic"><use href="#i-bell"/></svg></span>
+      </div>
+      {% endblock %}
+    </header>
+
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<dialog class="logout-dialog" id="logoutDialog" aria-labelledby="logoutTitle" aria-describedby="logoutDesc">
+  <div class="ld-card">
+    <div class="ld-head">
+      <span class="ld-icon" aria-hidden="true"><svg class="ic"><use href="#i-logout"/></svg></span>
+      <p class="ld-kicker">Akhiri sesi akun</p>
+      <button class="ld-close" type="button" aria-label="Tutup" data-close><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <h2 id="logoutTitle">Yakin ingin keluar, {{ nama_depan }}?</h2>
+    <p class="ld-text" id="logoutDesc">{% if peran == 'ADMIN' %}Kamu bisa masuk kembali kapan saja untuk mengelola pesanan.{% else %}Pesanan, alamat, dan poinmu tetap aman. Kamu bisa masuk kembali kapan saja untuk memantau cucian.{% endif %}</p>
+    {% if pesanan_aktif %}<span class="ld-chip">{{ pesanan_aktif }} pesanan masih diproses</span>{% endif %}
+    <div class="ld-actions">
+      <button class="ld-btn ghost" type="button" data-close autofocus>Batal, tetap di sini</button>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="ld-btn go" type="submit">Ya, keluar</button>
+      </form>
+    </div>
+    <p class="ld-note">Setelah keluar, kamu akan kembali ke website WuWashy.</p>
+    <hr class="ld-sep">
+    <a class="ld-link" href="{% url 'home' %}">Kembali ke website tanpa keluar <svg class="ic"><use href="#i-ext"/></svg></a>
+  </div>
+</dialog>
+
+<script>
+  const body = document.body;
+  const toggle = document.querySelector('.menu-btn');
+  const setNav = open => { body.classList.toggle('nav-open', open); toggle.setAttribute('aria-expanded', open); };
+  toggle.addEventListener('click', () => setNav(!body.classList.contains('nav-open')));
+  document.querySelector('[data-nav-close]').addEventListener('click', () => setNav(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setNav(false); });
+
+  const dlg = document.getElementById('logoutDialog');
+  document.querySelectorAll('[data-open-logout]').forEach(b => b.addEventListener('click', () => { setNav(false); dlg.showModal(); }));
+  dlg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dlg.close()));
+  // klik di area gelap (di luar kartu) menutup dialog
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>

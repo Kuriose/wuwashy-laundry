@@ -1,0 +1,117 @@
+{% extends 'laundry/panel_base.html' %}
+{% block title %}Dasbor{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Ringkasan laundry</h1>
+    <p>Selamat datang, {{ nama_depan }}. Berikut aktivitas {{ outlet_nama }} bulan ini.</p>
+  </div>
+  <a class="btn-lime" href="{% url 'booking' %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Buat Pesanan</a>
+</header>
+
+<div class="period">
+  <p>{{ awal_bulan|date:"j" }}&ndash;{{ sekarang|date:"j F Y" }} &middot; Diperbarui pukul {{ sekarang|date:"H.i" }}</p>
+  <span class="link-soon" title="Segera hadir">Laporan Tersimpan <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+</div>
+
+<section class="stats" aria-label="Statistik bulan ini">
+  <article class="stat">
+    <p class="stat-label">Total pesanan</p>
+    <p class="stat-value">{{ stat.total }}</p>
+    <p class="stat-hl">{{ stat.masuk_hari_ini }} pesanan masuk hari ini</p>
+    <p class="stat-note">Seluruh status pesanan</p>
+  </article>
+  <article class="stat">
+    <p class="stat-label">Pesanan aktif</p>
+    <p class="stat-value">{{ stat.aktif }}</p>
+    <p class="stat-hl">{{ jml.menunggu }} Menunggu &middot; {{ jml.diproses }} Diproses</p>
+    <p class="stat-note">{{ jml.siap }} Siap Diambil</p>
+  </article>
+  <article class="stat">
+    <p class="stat-label">Pesanan selesai</p>
+    <p class="stat-value">{{ stat.selesai }}</p>
+    <p class="stat-hl">{{ stat.selesai_hari_ini }} diserahkan hari ini</p>
+    <p class="stat-note">Sudah diterima pelanggan</p>
+  </article>
+  <article class="stat">
+    <p class="stat-label">Tingkat penyelesaian</p>
+    <p class="stat-value">{{ stat.tingkat }}%</p>
+    <p class="stat-hl">{{ stat.selesai }} dari {{ stat.total }} pesanan</p>
+    <p class="stat-note">{{ jml.dibatalkan }} pesanan Dibatalkan</p>
+  </article>
+</section>
+
+<div class="charts">
+  <section class="card" aria-labelledby="vol">
+    <h2 id="vol">Volume pesanan</h2>
+    <p class="card-sub">Pesanan harian &middot; {{ sekarang|date:"F Y" }}</p>
+    <p class="legend-line"><i class="dash"></i>Pesanan masuk <span>&middot; Total {{ stat.total }} pesanan</span></p>
+    <div class="chart" role="img" aria-label="Grafik batang jumlah pesanan masuk per hari bulan ini">
+      <div class="chart-grid" aria-hidden="true">
+        {% for t in sumbu %}<div class="gl"><span>{{ t }}</span></div>{% endfor %}
+      </div>
+      <div class="chart-bars">
+        {% for b in batang %}
+        <div class="bar-col" title="{{ b.tanggal|date:'j F' }}: {{ b.jumlah }} pesanan">
+          <i style="height:{{ b.persen }}%"></i>
+          {% if b.label %}<em>{{ b.tanggal|date:"j M" }}</em>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="dist">
+    <h2 id="dist">Distribusi status</h2>
+    <p class="card-sub">Seluruh pesanan pada periode terpilih</p>
+    <div class="dist">
+      <div class="donut" style="background:{{ donut.gradien }}" role="img" aria-label="Diagram donat distribusi status pesanan">
+        <p><strong>{{ stat.total }}</strong><span>pesanan</span></p>
+      </div>
+      <ul class="dist-legend">
+        {% for l in donut.legenda %}
+        <li><i style="background:{{ l.warna }}"></i>{{ l.label }}<b>{{ l.jumlah }}</b></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% if jumlah_siap %}
+    <p class="dist-note">{{ jml.siap }} pesanan Siap Diambil. Hubungi pelanggan agar cucian segera diambil.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section aria-labelledby="terbaru">
+  <div class="section-head"><h2 id="terbaru">Pesanan terbaru</h2><span>{% now "j F Y" %}</span></div>
+  <div class="card table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">ID Pesanan</th><th scope="col">Pelanggan</th><th scope="col">Tanggal</th>
+            <th scope="col">Layanan</th><th scope="col">Total</th><th scope="col">Status</th><th scope="col">Penyerahan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in terbaru %}
+          <tr>
+            <td class="id"><a href="{% url 'admin_pesanan_detail' o.pk %}">{{ o.resi }}</a></td>
+            <td><strong>{{ o.nama }}</strong><small>{{ o.whatsapp }}</small></td>
+            <td>{{ o.tanggal|date:"j M Y" }}</td>
+            <td>{{ o.layanan }}</td>
+            <td class="num">Rp {{ o.total }}</td>
+            <td><span class="pill st-{{ o.status_key }}"><i></i>{{ o.status_label }}</span></td>
+            <td class="muted">{{ o.penyerahan }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="empty-row">Belum ada pesanan masuk.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-foot">
+      <p>{% if terbaru %}Menampilkan 1&ndash;{{ jumlah_terbaru }} dari {{ jumlah_semua }} pesanan{% else %}Belum ada data{% endif %}</p>
+      <span class="link-soon dark" title="Segera hadir">Lihat Semua Pesanan <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+    </div>
+  </div>
+</section>
+{% endblock %}

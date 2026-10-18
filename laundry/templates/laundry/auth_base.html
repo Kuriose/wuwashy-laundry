@@ -1,0 +1,58 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}WuWashy Laundry{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'laundry/login.css' %}">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <clipPath id="auth-photo-clip" clipPathUnits="objectBoundingBox"><path d="M0,0 L0.7437,0.0000 L0.7482,0.0125 L0.7536,0.0250 L0.7596,0.0375 L0.7661,0.0500 L0.7728,0.0625 L0.7796,0.0750 L0.7861,0.0875 L0.7922,0.1000 L0.7976,0.1125 L0.8022,0.1250 L0.8058,0.1375 L0.8084,0.1500 L0.8097,0.1625 L0.8097,0.1750 L0.8085,0.1875 L0.8061,0.2000 L0.8024,0.2125 L0.7977,0.2250 L0.7921,0.2375 L0.7857,0.2500 L0.7787,0.2625 L0.7713,0.2750 L0.7638,0.2875 L0.7564,0.3000 L0.7493,0.3125 L0.7427,0.3250 L0.7368,0.3375 L0.7318,0.3500 L0.7279,0.3625 L0.7251,0.3750 L0.7235,0.3875 L0.7232,0.4000 L0.7242,0.4125 L0.7263,0.4250 L0.7297,0.4375 L0.7340,0.4500 L0.7392,0.4625 L0.7452,0.4750 L0.7516,0.4875 L0.7583,0.5000 L0.7650,0.5125 L0.7716,0.5250 L0.7778,0.5375 L0.7834,0.5500 L0.7882,0.5625 L0.7920,0.5750 L0.7947,0.5875 L0.7963,0.6000 L0.7966,0.6125 L0.7957,0.6250 L0.7935,0.6375 L0.7901,0.6500 L0.7856,0.6625 L0.7801,0.6750 L0.7738,0.6875 L0.7669,0.7000 L0.7596,0.7125 L0.7521,0.7250 L0.7447,0.7375 L0.7375,0.7500 L0.7308,0.7625 L0.7247,0.7750 L0.7195,0.7875 L0.7154,0.8000 L0.7123,0.8125 L0.7105,0.8250 L0.7100,0.8375 L0.7107,0.8500 L0.7126,0.8625 L0.7157,0.8750 L0.7199,0.8875 L0.7249,0.9000 L0.7307,0.9125 L0.7371,0.9250 L0.7437,0.9375 L0.7505,0.9500 L0.7571,0.9625 L0.7634,0.9750 L0.7691,0.9875 L0.7741,1.0000 L0,1 Z"/></clipPath>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><circle cx="12" cy="15.5" r=".9"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-3.2 4M6.5 7.5C4 9.2 2.5 12 2.5 12S6 18.5 12 18.5c1.5 0 2.8-.4 4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+  </defs>
+</svg>
+
+<main class="auth">
+  <aside class="auth-visual" aria-hidden="true">
+    <svg class="wave wave-outer" viewBox="0 0 1 1" preserveAspectRatio="none"><path d="M0,0 L0.8287,0.0000 L0.8332,0.0125 L0.8386,0.0250 L0.8446,0.0375 L0.8511,0.0500 L0.8578,0.0625 L0.8646,0.0750 L0.8711,0.0875 L0.8772,0.1000 L0.8826,0.1125 L0.8872,0.1250 L0.8908,0.1375 L0.8934,0.1500 L0.8947,0.1625 L0.8947,0.1750 L0.8935,0.1875 L0.8911,0.2000 L0.8874,0.2125 L0.8827,0.2250 L0.8771,0.2375 L0.8707,0.2500 L0.8637,0.2625 L0.8563,0.2750 L0.8488,0.2875 L0.8414,0.3000 L0.8343,0.3125 L0.8277,0.3250 L0.8218,0.3375 L0.8168,0.3500 L0.8129,0.3625 L0.8101,0.3750 L0.8085,0.3875 L0.8082,0.4000 L0.8092,0.4125 L0.8113,0.4250 L0.8147,0.4375 L0.8190,0.4500 L0.8242,0.4625 L0.8302,0.4750 L0.8366,0.4875 L0.8433,0.5000 L0.8500,0.5125 L0.8566,0.5250 L0.8628,0.5375 L0.8684,0.5500 L0.8732,0.5625 L0.8770,0.5750 L0.8797,0.5875 L0.8813,0.6000 L0.8816,0.6125 L0.8807,0.6250 L0.8785,0.6375 L0.8751,0.6500 L0.8706,0.6625 L0.8651,0.6750 L0.8588,0.6875 L0.8519,0.7000 L0.8446,0.7125 L0.8371,0.7250 L0.8297,0.7375 L0.8225,0.7500 L0.8158,0.7625 L0.8097,0.7750 L0.8045,0.7875 L0.8004,0.8000 L0.7973,0.8125 L0.7955,0.8250 L0.7950,0.8375 L0.7957,0.8500 L0.7976,0.8625 L0.8007,0.8750 L0.8049,0.8875 L0.8099,0.9000 L0.8157,0.9125 L0.8221,0.9250 L0.8287,0.9375 L0.8355,0.9500 L0.8421,0.9625 L0.8484,0.9750 L0.8541,0.9875 L0.8591,1.0000 L0,1 Z"/></svg>
+    <svg class="wave wave-mid" viewBox="0 0 1 1" preserveAspectRatio="none"><path d="M0,0 L0.7787,0.0000 L0.7832,0.0125 L0.7886,0.0250 L0.7946,0.0375 L0.8011,0.0500 L0.8078,0.0625 L0.8146,0.0750 L0.8211,0.0875 L0.8272,0.1000 L0.8326,0.1125 L0.8372,0.1250 L0.8408,0.1375 L0.8434,0.1500 L0.8447,0.1625 L0.8447,0.1750 L0.8435,0.1875 L0.8411,0.2000 L0.8374,0.2125 L0.8327,0.2250 L0.8271,0.2375 L0.8207,0.2500 L0.8137,0.2625 L0.8063,0.2750 L0.7988,0.2875 L0.7914,0.3000 L0.7843,0.3125 L0.7777,0.3250 L0.7718,0.3375 L0.7668,0.3500 L0.7629,0.3625 L0.7601,0.3750 L0.7585,0.3875 L0.7582,0.4000 L0.7592,0.4125 L0.7613,0.4250 L0.7647,0.4375 L0.7690,0.4500 L0.7742,0.4625 L0.7802,0.4750 L0.7866,0.4875 L0.7933,0.5000 L0.8000,0.5125 L0.8066,0.5250 L0.8128,0.5375 L0.8184,0.5500 L0.8232,0.5625 L0.8270,0.5750 L0.8297,0.5875 L0.8313,0.6000 L0.8316,0.6125 L0.8307,0.6250 L0.8285,0.6375 L0.8251,0.6500 L0.8206,0.6625 L0.8151,0.6750 L0.8088,0.6875 L0.8019,0.7000 L0.7946,0.7125 L0.7871,0.7250 L0.7797,0.7375 L0.7725,0.7500 L0.7658,0.7625 L0.7597,0.7750 L0.7545,0.7875 L0.7504,0.8000 L0.7473,0.8125 L0.7455,0.8250 L0.7450,0.8375 L0.7457,0.8500 L0.7476,0.8625 L0.7507,0.8750 L0.7549,0.8875 L0.7599,0.9000 L0.7657,0.9125 L0.7721,0.9250 L0.7787,0.9375 L0.7855,0.9500 L0.7921,0.9625 L0.7984,0.9750 L0.8041,0.9875 L0.8091,1.0000 L0,1 Z"/></svg>
+    <div class="auth-photo"><img src="{% static 'laundry/img/login.jpg' %}" alt=""></div>
+    <div class="auth-dots"><span class="on"></span><span></span><span></span></div>
+  </aside>
+
+  <section class="auth-panel">
+    <a class="auth-back" href="{% url 'home' %}"><svg class="ic"><use href="#i-arrow-left"/></svg>Back to home</a>
+
+    <div class="auth-card">
+{% block card %}{% endblock %}
+    </div>
+  </section>
+</main>
+
+<script>
+  // tombol tampil/sembunyikan password (berlaku untuk setiap kolom password)
+  document.querySelectorAll('.toggle-pw').forEach(btn => {
+    const input = btn.closest('.input').querySelector('input');
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show);
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      btn.querySelector('use').setAttribute('href', show ? '#i-eye' : '#i-eye-off');
+    });
+  });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends 'laundry/panel_base.html' %}
+{% block title %}Pesanan {{ b.resi }}{% endblock %}
+{% block crumb %}Detail Pesanan{% endblock %}
+{% block content %}
+<a class="dp-back" href="{% url 'admin_dashboard' %}">&larr; Kembali ke dasbor</a>
+
+{% if messages %}
+<div class="dp-msgs" role="status">
+  {% for m in messages %}<p class="dp-msg {{ m.tags }}">{{ m }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<header class="page-head dp-head">
+  <div>
+    <h1>Pesanan {{ b.resi }}</h1>
+    <p>Dibuat {{ b.dibuat|date:"j F Y" }}, pukul {{ b.dibuat|date:"H.i" }}</p>
+  </div>
+  <span class="pill st-{{ status_kunci }}"><i></i>{{ b.get_status_display }}</span>
+</header>
+
+<div class="dp-grid">
+  <div class="dp-main">
+    <section class="card" aria-labelledby="dp-pel">
+      <h2 id="dp-pel">Pelanggan</h2>
+      <p class="card-sub">Informasi kontak dan penyerahan</p>
+      <div class="dp-two">
+        <div>
+          <p class="dp-name">{{ b.nama }}</p>
+          <p class="dp-line">{{ b.whatsapp }}</p>
+          <p class="dp-muted">{% if b.user %}{{ b.user.email }}{% else %}Tanpa akun (tamu){% endif %}</p>
+        </div>
+        <div>
+          <p class="dp-strong">{{ b.penyerahan }}</p>
+          <p class="dp-line sm">{{ b.alamat }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="dp-rinci">
+      <h2 id="dp-rinci">Rincian layanan</h2>
+      <table class="dp-tbl">
+        <thead><tr><th>Layanan</th><th>Berat &times; tarif</th><th class="num">Subtotal</th></tr></thead>
+        <tbody><tr>
+          <td><strong>{{ b.nama_layanan }}</strong></td>
+          <td>{{ b.berat|floatformat:"-1" }} {{ b.satuan }} &times; Rp {{ b.harga_satuan_fmt }}</td>
+          <td class="num"><strong>Rp {{ b.total_fmt }}</strong></td>
+        </tr></tbody>
+      </table>
+      <div class="dp-total"><span>Total pembayaran</span><b>Rp {{ b.total_fmt }}</b></div>
+    </section>
+
+    <section class="card" aria-labelledby="dp-cat">
+      <h2 id="dp-cat">Catatan pesanan</h2>
+      <p class="dp-note">{{ b.catatan|default:"Tidak ada catatan khusus." }}</p>
+      <p class="dp-muted">Estimasi siap: {{ b.estimasi_selesai|date:"j F Y" }}, pukul {{ b.estimasi_selesai|date:"H.i T" }}</p>
+    </section>
+  </div>
+
+  <aside class="dp-side">
+    <section class="card" aria-labelledby="dp-jalan">
+      <h2 id="dp-jalan">Perjalanan pesanan</h2>
+      <p class="card-sub">Perubahan terakhir {{ b.diperbarui|date:"j M Y" }}, pukul {{ b.diperbarui|date:"H.i" }}</p>
+      <ol class="dp-tl">
+        {% for l in b.langkah %}
+        <li class="{% if l.done %}done{% endif %}{% if l.now %} now{% endif %}">
+          <i></i><strong>{{ l.label }}</strong>
+          <small>{% if forloop.first %}{{ b.dibuat|date:"j M Y · H.i" }}{% elif l.now %}{{ b.diperbarui|date:"j M Y · H.i" }}{% elif not l.done %}Belum dicapai{% endif %}</small>
+        </li>
+        {% empty %}
+        <li class="now"><i></i><strong>Dibatalkan</strong><small>{{ b.diperbarui|date:"j M Y · H.i" }}</small></li>
+        {% endfor %}
+      </ol>
+    </section>
+
+    <section class="card" aria-labelledby="dp-upd">
+      <h2 id="dp-upd">Perbarui pesanan</h2>
+      <form method="post" class="dp-form">
+        {% csrf_token %}
+        <label for="status">Status berikutnya</label>
+        <select id="status" name="status">
+          {% for kunci, label in pilihan_status %}
+          <option value="{{ kunci }}"{% if kunci == b.status %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <p class="dp-hint">Poin pelanggan masuk otomatis saat status menjadi Selesai (hanya sekali per pesanan).</p>
+        <button class="btn-lime dp-save" type="submit">Simpan Status</button>
+      </form>
+    </section>
+
+    <section class="card dp-poin" aria-labelledby="dp-poin">
+      <h2 id="dp-poin">Poin pelanggan</h2>
+      {% if b.user %}
+      <p class="dp-line sm">Akun: <strong>{{ b.user.email }}</strong> <span class="dp-muted">({{ b.get_asal_display }})</span></p>
+      <p class="dp-line sm">Saldo sekarang: <strong>{{ saldo_pelanggan }} poin</strong></p>
+      {% if log_poin %}
+      <p class="dp-ok">Sudah diberikan: +{{ log_poin.jumlah }} poin ({{ log_poin.dibuat|date:"j M Y, H.i" }})</p>
+      {% elif b.poin %}
+      <p class="dp-hint" style="margin:8px 0 0">Akan mendapat +{{ b.poin }} poin saat pesanan selesai.</p>
+      {% else %}
+      <p class="dp-hint" style="margin:8px 0 0">Total pesanan terlalu kecil untuk mendapat poin.</p>
+      {% endif %}
+      {% else %}
+      <p class="dp-hint" style="margin:8px 0 0">Pesanan tamu tanpa akun: tidak ada poin. Untuk menautkan, pilih akun pada kolom User di <a href="{% url 'admin:laundry_booking_change' b.pk %}">/admin</a> (perlu akun superuser).</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

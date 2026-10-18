@@ -1,0 +1,22 @@
+{% extends 'laundry/base.html' %}
+{% load static %}
+{% block bodyclass %}page-hero{% endblock %}
+{% block content %}
+<main>
+<section class="hero" id="home">
+  <span class="watermark" aria-hidden="true">WuWashy</span>
+  <span class="bubble b1"></span><span class="bubble b2"></span>
+  <img class="hero-img" src="{% static 'laundry/img/hero.jpg' %}" alt="Tumpukan celana jeans yang bersih dan terlipat rapi">
+  <div class="hero-copy">
+    <h1><span class="script">WuWashy</span><span class="hero-sub">Laundry</span></h1>
+    <p>Laundry Bersih, Hidup Lebih Rapi! Kami merawat pakaian Anda dengan penuh kasih sayang, bersih berkilau seperti baru dengan keharuman yang tahan lama.</p>
+    <a class="btn btn-lime" href="{% url 'booking' %}">Booking Sekarang</a>
+  </div>
+</section>
+
+{% include 'laundry/_about_section.html' %}
+{% include 'laundry/_testimoni_section.html' %}
+{% include 'laundry/_services_section.html' %}
+{% include 'laundry/_outlet_section.html' %}
+</main>
+{% endblock %}

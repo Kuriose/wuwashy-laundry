@@ -1,0 +1,82 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% block title %}Poin &amp; hadiah{% endblock %}
+{% block heading %}Poin &amp; hadiah{% endblock %}
+{% block content %}
+<section class="ph-hero" aria-labelledby="ph-judul">
+  <div class="ph-hero-l">
+    <h2 id="ph-judul">Cucian bersih, hadiah makin dekat.</h2>
+    <p>Setiap Rp 1.000 transaksi selesai = 1 poin. Terima kasih sudah bersama WuWashy!</p>
+    <div class="ph-saldo">
+      <p><strong>{{ saldo_fmt }}</strong><span>poin tersedia</span></p>
+      <span class="tier">WuMember</span>
+    </div>
+  </div>
+  <div class="ph-hero-r">
+    <p class="ph-target">Targetmu: {{ target.nama }}</p>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ target_persen }}" aria-label="Progres menuju {{ target.nama }}"><i style="width:{{ target_persen }}%"></i></div>
+    <p class="ph-prog">{{ saldo_fmt }} / {{ target.poin_fmt }} poin &middot; {% if target.bisa %}sudah bisa ditukar{% else %}{{ target.kurang }} poin lagi{% endif %}</p>
+  </div>
+</section>
+
+<div class="section-head ph-head">
+  <h2>Hadiah untukmu</h2>
+  <nav class="tabs" aria-label="Filter hadiah">
+    <a href="?tab=semua"{% if tab == 'semua' %} class="is-on" aria-current="page"{% endif %}>Semua hadiah</a>
+    <a href="?tab=bisa"{% if tab == 'bisa' %} class="is-on" aria-current="page"{% endif %}>Bisa ditukar ({{ jumlah_bisa }})</a>
+  </nav>
+</div>
+
+<div class="ph-grid">
+  {% for h in hadiah %}
+  <article class="card reward">
+    <div class="reward-art {{ h.warna }}" aria-hidden="true"><svg class="ic"><use href="#i-gift"/></svg></div>
+    <h3>{{ h.nama }}</h3>
+    <p class="reward-poin"><b>{{ h.poin_fmt }}</b> <small>poin</small></p>
+    <details class="reward-detail">
+      <summary>{% if h.bisa %}<span class="ok">Bisa ditukar</span>{% else %}Kurang {{ h.kurang }} poin{% endif %} &middot; Lihat detail</summary>
+      <p>Penukaran voucher segera hadir. Saldo poinmu tetap aman dan terus bertambah dari setiap pesanan yang selesai.</p>
+    </details>
+  </article>
+  {% empty %}
+  <div class="card ph-kosong"><p>Belum ada hadiah yang bisa ditukar. Kumpulkan poin dari setiap cucian yang selesai.</p></div>
+  {% endfor %}
+
+  <aside class="card tips" aria-labelledby="tips">
+    <h2 id="tips">Tips kumpulkan poin</h2>
+    {% if poin_menunggu %}
+    <span class="poin-chip pill">+{{ poin_menunggu }} poin menunggu</span>
+    <p class="tips-p">Pesanan #{{ pesanan_menunggu.resi }} akan menambah {{ pesanan_menunggu.poin }} poin setelah cucian selesai.</p>
+    {% else %}
+    <p class="tips-p">Belum ada poin yang menunggu. <a href="{% url 'booking' %}">Pesan laundry</a> untuk mulai mengumpulkan poin.</p>
+    {% endif %}
+    <p class="tips-rule">Poin otomatis masuk setelah pesanan selesai.</p>
+    <p class="tips-fine">Poin tidak dapat diuangkan atau dipindahkan ke akun lain.</p>
+  </aside>
+</div>
+
+<section class="card riwayat" aria-labelledby="riwayat-poin">
+  <h2 id="riwayat-poin">Riwayat poin</h2>
+  {% if riwayat %}
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>Tanggal &amp; aktivitas</th><th>Pesanan</th><th class="num">Poin</th><th class="num">Saldo</th></tr></thead>
+      <tbody>
+        {% for l in riwayat %}
+        <tr>
+          <td>{{ l.dibuat|date:"j M Y" }} &middot; {{ l.keterangan }}</td>
+          <td>{% if l.booking %}#{{ l.booking.resi }}{% else %}-{% endif %}</td>
+          <td class="num {% if l.jumlah > 0 %}plus{% else %}minus{% endif %}">{% if l.jumlah > 0 %}+{% endif %}{{ l.jumlah }}</td>
+          <td class="num">{{ l.saldo }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-history"/></svg></span>
+    <div><strong>Belum ada riwayat poin</strong><p>Poin dari pesanan yang selesai akan tercatat di sini.</p></div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

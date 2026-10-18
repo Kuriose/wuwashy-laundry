@@ -1,0 +1,80 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% load static %}
+{% block title %}Beranda{% endblock %}
+{% block content %}
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    <h2 id="sapa">Halo, {{ nama_depan }}! Siap tampil fresh?</h2>
+    <p>Pantau cucianmu atau jadwalkan penjemputan baru di sini.</p>
+  </div>
+  <a class="btn-white" href="{% url 'booking' %}"><svg class="ic"><use href="#i-plus"/></svg>Pesan laundry</a>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
+</section>
+
+<div class="grid">
+  <section class="card area-track" aria-labelledby="lacak">
+    <div class="section-head" style="margin-bottom:0"><h2 id="lacak">Lacak cucianmu</h2></div>
+    <div class="empty">
+      <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-logo"/></svg></span>
+      <div>
+        <strong>Belum ada cucian yang diproses</strong>
+        <p>Pesan penjemputan dan statusnya akan muncul di sini.</p>
+      </div>
+      <a class="btn-blue" href="{% url 'booking' %}">Pesan laundry</a>
+    </div>
+  </section>
+
+  <aside class="points area-side" aria-labelledby="poin">
+    <div class="points-head">
+      <h2 id="poin">Poin loyalitas</h2>
+      <span class="tier">WuMember</span>
+    </div>
+    <div class="points-total">
+      <p><strong>{{ poin }}</strong><small>poin</small></p>
+      <svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg>
+    </div>
+    <div class="points-row"><span>Menuju voucher Rp 10.000</span><b>{{ poin_persen }}%</b></div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ poin_persen }}" aria-label="Progres poin menuju voucher"><i style="width:{{ poin_persen }}%"></i></div>
+    <p class="points-note">Kumpulkan {{ poin_target }} poin dari setiap cucian untuk menukar voucher.</p>
+    <a class="points-link" href="{% url 'poin_hadiah' %}">Lihat poin &amp; hadiah <svg class="ic"><use href="#i-ext"/></svg></a>
+  </aside>
+
+  <div class="area-rest">
+    <section aria-labelledby="layanan">
+      <div class="section-head"><h2 id="layanan">Pilih layananmu</h2><span>{{ layanan|length }} layanan tersedia</span></div>
+      <div class="services">
+        {% for s in layanan %}
+        <a class="service" href="{% url 'booking' %}?layanan={{ s.key }}">
+          <img src="{% static 'laundry/img/' %}{{ s.img }}" alt="">
+          <h3>{{ s.nama }}</h3>
+          <p class="price">Rp {{ s.harga_fmt }} <small>/{{ s.satuan }}</small></p>
+          <p class="eta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>{{ s.estimasi|cut:"Selesai dalam " }}</p>
+          <span class="service-cta"><svg class="ic" aria-hidden="true"><use href="#i-plus-circle"/></svg>Pesan layanan ini</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="riwayat">
+      <div class="section-head" style="margin-bottom:0"><h2 id="riwayat">Riwayat pesanan</h2></div>
+      <div class="empty">
+        <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-history"/></svg></span>
+        <div>
+          <strong>Belum ada riwayat pesanan</strong>
+          <p>Pesanan yang sudah selesai akan tercatat di sini.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="address" aria-labelledby="alamat">
+      <span class="address-icon" aria-hidden="true"><svg class="ic"><use href="#i-pin"/></svg></span>
+      <div>
+        <strong id="alamat">Alamat penjemputan</strong>
+        <p>Belum ada alamat tersimpan. Tulis alamat lengkapmu saat memesan agar kurir langsung meluncur.</p>
+        <p class="tag">Dalam radius 3 km &middot; Gratis antar-jemput</p>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

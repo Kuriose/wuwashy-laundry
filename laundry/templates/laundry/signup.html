@@ -1,0 +1,72 @@
+{% extends 'laundry/auth_base.html' %}
+{% block title %}Sign up - WuWashy Laundry{% endblock %}
+{% block card %}
+      <p class="auth-eyebrow"><span></span>JOIN WUWASHY</p>
+      <h1>Create your account</h1>
+      <p class="auth-sub">Sign up to book a pickup, track your laundry, and collect rewards in one place.</p>
+
+      <form method="post" action="{% url 'signup' %}" novalidate>
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="{{ form.full_name.id_for_label }}">Full name</label>
+          <div class="input{% if form.full_name.errors %} invalid{% endif %}">
+            <svg class="ic lead"><use href="#i-user"/></svg>
+            {{ form.full_name }}
+          </div>
+          {% for e in form.full_name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">Email address</label>
+          <div class="input{% if form.email.errors %} invalid{% endif %}">
+            <svg class="ic lead"><use href="#i-mail"/></svg>
+            {{ form.email }}
+          </div>
+          {% for e in form.email.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.whatsapp.id_for_label }}">WhatsApp number</label>
+          <div class="input{% if form.whatsapp.errors %} invalid{% endif %}">
+            <svg class="ic lead"><use href="#i-user"/></svg>
+            {{ form.whatsapp }}
+          </div>
+          {% for e in form.whatsapp.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          {% if not form.whatsapp.errors %}<p class="field-hint">Used to link your pickup orders and loyalty points.</p>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password1.id_for_label }}">Password</label>
+          <div class="input{% if form.password1.errors %} invalid{% endif %}">
+            <svg class="ic lead"><use href="#i-lock"/></svg>
+            {{ form.password1 }}
+            <button class="toggle-pw" type="button" aria-label="Show password" aria-pressed="false">
+              <svg class="ic"><use href="#i-eye-off"/></svg>
+            </button>
+          </div>
+          {% for e in form.password1.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          {% if not form.password1.errors %}<p class="field-hint">At least 8 characters, not too common, and not all numbers.</p>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+          <div class="input{% if form.password2.errors %} invalid{% endif %}">
+            <svg class="ic lead"><use href="#i-lock"/></svg>
+            {{ form.password2 }}
+            <button class="toggle-pw" type="button" aria-label="Show password" aria-pressed="false">
+              <svg class="ic"><use href="#i-eye-off"/></svg>
+            </button>
+          </div>
+          {% for e in form.password2.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="form-error" role="alert">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+
+        <button class="btn-login" type="submit">Create account <svg class="ic"><use href="#i-arrow"/></svg></button>
+      </form>
+
+      <p class="signup">Already have an account? <a class="link" href="{% url 'login' %}">Log in</a></p>
+{% endblock %}

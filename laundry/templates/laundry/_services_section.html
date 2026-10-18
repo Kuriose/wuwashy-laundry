@@ -1,0 +1,34 @@
+{% load static %}
+<section class="layanan" id="services">
+  <div class="wrap">
+    <span class="pill">LAYANAN KAMI</span>
+    <h2 class="h2 center">Pilih Layanan Terbaik Untukmu</h2>
+    <p class="center small">Kami menyediakan berbagai opsi perawatan pakaian dengan harga bersahabat dan kualitas premium.</p>
+    <div class="svc-grid">
+      {% for s in layanan %}
+      <a class="svc" href="{% url 'booking' %}?layanan={{ s.key }}" aria-label="Booking {{ s.nama }}">
+        {% if s.badge %}<span class="badge">{{ s.badge }}</span>{% endif %}
+        <img class="svc-img" src="{% static 'laundry/img/' %}{{ s.img }}" alt="">
+        <h3>{{ s.nama }}</h3>
+        <p class="price">Rp {{ s.harga_fmt }} <small>/{{ s.satuan }}</small></p>
+        <p class="desc">{{ s.desc }}</p>
+        <p class="eta"><svg class="ic"><use href="#i-clock"/></svg>{{ s.estimasi }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="why">
+  <div class="wrap">
+    <span class="pill">KEUNGGULAN</span>
+    <h2 class="h2 center">Kenapa Wajib Memilih Wuwashy?</h2>
+    <p class="center small">Kami berdedikasi menjaga kepuasan Anda melalui pelayanan yang melampaui harapan.</p>
+    <div class="why-grid">
+      {% for foto, judul, teks in keunggulan %}
+      <article class="why-item"><img class="why-img" src="{% static 'laundry/img/' %}{{ foto }}" alt=""><h3>{{ judul }}</h3><p>{{ teks }}</p></article>
+      {% endfor %}
+    </div>
+    <p class="center"><a class="btn btn-lime btn-outline" href="{% url 'booking' %}">Booking Sekarang</a></p>
+  </div>
+</section>

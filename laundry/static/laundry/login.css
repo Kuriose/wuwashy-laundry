@@ -1,0 +1,86 @@
+:root {
+  --blue: #1e96fc; --navy: #0b1230; --lime: #ccff48;
+  --ink-2: #6b7691; --field: #f6f8fe; --line: #dbe3f2;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--navy); background: #fff; line-height: 1.5; }
+h1 { font-family: 'Outfit', sans-serif; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.auth { display: grid; grid-template-columns: minmax(0, 46.6fr) minmax(0, 53.4fr); min-height: 100vh; }
+
+/* ---------- sisi foto bergelombang ---------- */
+.auth-visual { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #fff; }
+.auth-visual .wave, .auth-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wave-outer path { fill: #d9ebff; }
+.wave-mid path { fill: #8ea8d6; }
+.auth-photo { clip-path: url(#auth-photo-clip); }
+.auth-photo img { width: 84%; height: 100%; max-width: none; object-fit: cover; object-position: left top; }
+.auth-dots { position: absolute; left: 41%; bottom: 28px; display: flex; gap: 10px; }
+.auth-dots span { width: 24px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.28); border: 1px solid rgba(255,255,255,.4); }
+.auth-dots span.on { width: 54px; background: #5aaaf5; border-color: #5aaaf5; }
+
+/* ---------- sisi form ---------- */
+.auth-panel { position: relative; display: flex; align-items: center; justify-content: center; padding: 64px clamp(24px, 5vw, 72px) 40px; }
+.auth-back { position: absolute; top: 24px; right: clamp(24px, 5vw, 72px); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); text-decoration: none; }
+.auth-back:hover { color: var(--navy); }
+.auth-back .ic { width: 16px; height: 16px; }
+.auth-card { width: 100%; max-width: 560px; }
+
+.auth-eyebrow { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; letter-spacing: .12em; color: #1769c2; margin-bottom: 14px; }
+.auth-eyebrow span { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
+h1 { font-size: clamp(38px, 4.4vw, 58px); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin-bottom: 18px; }
+.auth-sub { color: var(--ink-2); font-size: 17px; max-width: 350px; margin-bottom: 30px; }
+
+.field { margin-bottom: 20px; }
+.field label { display: block; font-weight: 500; font-size: 15px; margin-bottom: 10px; }
+.input { position: relative; display: flex; align-items: center; background: var(--field); border: 1px solid var(--line); border-radius: 14px; height: 58px; transition: border-color .15s, box-shadow .15s; }
+.input:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(30,150,252,.14); }
+.input.invalid { border-color: #e5484d; }
+.input .lead { position: absolute; left: 18px; color: #6f7b97; pointer-events: none; }
+.input input { width: 100%; height: 100%; border: 0; background: none; font: inherit; font-size: 15.5px; color: var(--navy); padding: 0 52px 0 54px; border-radius: 14px; }
+.input input:focus-visible { outline: 0; }
+.input input::placeholder { color: #8d97b0; }
+.toggle-pw { position: absolute; right: 8px; display: grid; place-items: center; width: 42px; height: 42px; border: 0; background: none; color: #6f7b97; border-radius: 10px; cursor: pointer; }
+.toggle-pw:hover { color: var(--navy); background: rgba(120,140,200,.12); }
+.field-error { color: #c93a3f; font-size: 13.5px; margin-top: 8px; }
+
+.row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 4px 0 20px; font-size: 14.5px; }
+.check { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.check input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; border-radius: 5px; border: 1.5px solid var(--navy); background: #fff; cursor: pointer; display: grid; place-items: center; }
+.check input:checked { background: var(--navy) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 6.8' fill='none' stroke='%23ccff48' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat; }
+.link { color: #1769c2; font-weight: 600; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+.form-error { background: #fff1f1; border: 1px solid #f3b4b4; color: #a52a2f; border-radius: 12px; padding: 12px 16px; font-size: 14.5px; margin-bottom: 18px; }
+
+.btn-login { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 58px; border: 0; border-radius: 14px; background: var(--navy); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.btn-login .ic { color: var(--lime); stroke-width: 2.2; }
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(11,18,48,.25); }
+
+.divider { display: flex; align-items: center; gap: 16px; margin: 26px 0; color: var(--ink-2); font-size: 13.5px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.social { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.social button { display: flex; align-items: center; justify-content: center; gap: 12px; height: 54px; background: #fff; border: 1px solid var(--line); border-radius: 14px; font: inherit; font-weight: 500; font-size: 15.5px; color: var(--navy); }
+.social button:disabled { opacity: .6; cursor: not-allowed; }
+
+.signup { text-align: center; color: var(--ink-2); font-size: 14.5px; margin-top: 26px; }
+
+@media (max-width: 900px) {
+  .auth { grid-template-columns: 1fr; }
+  .auth-visual { display: none; }
+  .auth-panel { padding-top: 76px; }
+  .auth-back { left: clamp(24px, 5vw, 72px); right: auto; }
+}
+@media (max-width: 480px) {
+  .social { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .btn-login, .input { transition: none; } }
+
+/* ---------- sign up ---------- */
+.field-hint { color: var(--ink-2); font-size: 13.5px; margin-top: 8px; }

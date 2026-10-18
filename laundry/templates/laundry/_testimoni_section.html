@@ -1,0 +1,17 @@
+{% load static %}
+<section class="testi">
+  <div class="wrap">
+    <span class="pill">ULASAN PELANGGAN</span>
+    <h2 class="h2 center">Apa Kata Mereka Tentang Kami?</h2>
+    <p class="center small">Dengar cerita langsung dari pelanggan setia yang telah merasakan kepraktisan bersama Wuwashy</p>
+    <div class="testi-grid">
+      {% for nama, peran, foto, teks in testimoni %}
+      <article class="tcard">
+        <div class="tstars" aria-label="5 bintang">★★★★★</div>
+        <p>"{{ teks }}"</p>
+        <div class="q-who"><img class="avatar avatar-lg" src="{% static 'laundry/img/' %}{{ foto }}" alt=""><span><strong>{{ nama }}</strong><small>{{ peran }}</small></span></div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

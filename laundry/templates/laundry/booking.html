@@ -1,0 +1,29 @@
+{% extends 'laundry/base.html' %}
+{% load static %}
+{% block title %}Booking Sekarang - WuWashy Laundry{% endblock %}
+{% block content %}
+<main class="booking">
+  <div class="wrap booking-grid">
+    <div class="booking-l">
+      <span class="pill pill-left">BOOKING SEKARANG</span>
+      <h1 class="h2">Malas Keluar Rumah? Kami Jemput Cucianmu!</h1>
+      <p class="small lead-l">Isi data di bawah ini, kurir kami akan segera meluncur untuk mengambil pakaian kotor Anda. Pengiriman praktis langsung via WhatsApp!</p>
+
+      <form method="post" class="form" novalidate>
+        {% csrf_token %}
+        <div class="grid-2">
+          <div class="field">{{ form.nama.label_tag }}{{ form.nama }}{{ form.nama.errors }}</div>
+          <div class="field">{{ form.whatsapp.label_tag }}{{ form.whatsapp }}{{ form.whatsapp.errors }}</div>
+          <div class="field">{{ form.layanan.label_tag }}{{ form.layanan }}{{ form.layanan.errors }}</div>
+          <div class="field">{{ form.berat.label_tag }}{{ form.berat }}{{ form.berat.errors }}</div>
+        </div>
+        <div class="field">{{ form.alamat.label_tag }}{{ form.alamat }}{{ form.alamat.errors }}</div>
+        <div class="field">{{ form.catatan.label_tag }}{{ form.catatan }}{{ form.catatan.errors }}</div>
+        <p class="atau">atau</p>
+        <button type="submit" class="btn btn-wa"><svg class="ic"><use href="#i-wa"/></svg>Kirim via WhatsApp</button>
+      </form>
+    </div>
+    <img class="booking-photo" src="{% static 'laundry/img/booking.jpg' %}" alt="Seseorang membawa tumpukan pakaian warna-warni">
+  </div>
+</main>
+{% endblock %}

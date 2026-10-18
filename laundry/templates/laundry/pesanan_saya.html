@@ -1,0 +1,98 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% load static %}
+{% block title %}Pesanan saya{% endblock %}
+{% block heading %}Pesanan saya{% endblock %}
+{% block content %}
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    {% if jumlah_aktif %}
+    <h2 id="sapa">Cucianmu sedang kami rawat.</h2>
+    <p>{{ jumlah_aktif }} pesanan aktif. Duduk santai, kami urus bersih dan rapinya.</p>
+    {% else %}
+    <h2 id="sapa">Belum ada cucian yang diproses.</h2>
+    <p>Pesan penjemputan dan statusnya akan muncul di sini.</p>
+    {% endif %}
+  </div>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
+</section>
+
+<section class="card stats3" aria-label="Ringkasan pesanan aktif">
+  <div><p class="stat-label">Pesanan aktif</p><p class="stat-val">{{ jumlah_aktif }} pesanan</p></div>
+  <div><p class="stat-label">Estimasi selesai</p><p class="stat-val">{% if estimasi_terdekat %}{{ estimasi_terdekat|date:"H.i T" }}{% else %}-{% endif %}</p>{% if estimasi_terdekat %}<p class="stat-sub">{{ estimasi_terdekat|date:"j M Y" }}</p>{% endif %}</div>
+  <div><p class="stat-label">Total pesanan</p><p class="stat-val">Rp {{ total_aktif }}</p></div>
+</section>
+
+<div class="po-grid">
+  <div class="po-main">
+    <nav class="tabs" aria-label="Filter pesanan">
+      <a href="?tab=aktif"{% if tab == 'aktif' %} class="is-on" aria-current="page"{% endif %}>Aktif ({{ jumlah_aktif }})</a>
+      <a href="?tab=menunggu"{% if tab == 'menunggu' %} class="is-on" aria-current="page"{% endif %}>Menunggu penjemputan ({{ jumlah_menunggu }})</a>
+      <span class="sort">Terbaru lebih dulu</span>
+    </nav>
+
+    {% for b in pesanan %}
+    <article class="card order" aria-labelledby="o-{{ b.pk }}">
+      <header class="order-head">
+        <h2 id="o-{{ b.pk }}">#{{ b.resi }}</h2>
+        <span class="chip">{{ b.get_status_display }}</span>
+      </header>
+      <p class="order-sub">{{ b.nama_layanan }} &middot; {{ b.berat|floatformat:"-1" }} {{ b.satuan }} &middot; {{ b.dibuat|date:"j F Y" }}</p>
+
+      <ol class="steps" aria-label="Tahap pesanan">
+        {% for l in b.langkah %}
+        <li class="{% if l.done %}done{% endif %}{% if l.now %} now{% endif %}"{% if l.now %} aria-current="step"{% endif %}>
+          <span class="dot">{% if l.done and not l.now %}<svg class="ic"><use href="#i-check"/></svg>{% endif %}</span>
+          <strong>{{ l.label }}</strong>
+          {% if forloop.first %}<small>{{ b.dibuat|date:"j M · H.i" }}</small>{% elif l.now %}<small>{{ b.diperbarui|date:"j M · H.i" }} &middot; sedang diproses</small>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+
+      <p class="note-box"><svg class="ic"><use href="#i-info"/></svg>Estimasi selesai: {{ b.estimasi_selesai|date:"j F Y · H.i T" }}. Update terakhir {{ b.diperbarui|date:"H.i" }}.</p>
+
+      <div class="order-total"><span>Estimasi tagihan</span><b>Rp {{ b.total_fmt }}</b></div>
+      <div class="order-foot">
+        <a class="btn-blue" href="https://wa.me/{{ whatsapp_admin }}?text=Halo%20WuWashy%2C%20saya%20mau%20tanya%20pesanan%20{{ b.resi }}" target="_blank" rel="noopener">Tanya pesanan ini</a>
+        {% if b.poin %}<a class="poin-chip" href="{% url 'poin_hadiah' %}">+{{ b.poin }} poin setelah selesai</a>{% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <section class="card">
+      <div class="empty" style="margin-top:0">
+        <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-logo"/></svg></span>
+        <div>
+          <strong>{% if tab == 'menunggu' %}Tidak ada pesanan yang menunggu penjemputan{% else %}Belum ada pesanan aktif{% endif %}</strong>
+          <p>Pesanan yang sedang berjalan akan muncul di sini.</p>
+        </div>
+      </div>
+    </section>
+    {% endfor %}
+
+    <section class="card next" aria-labelledby="next">
+      <h2 id="next">Mau jadwalkan cucian berikutnya?</h2>
+      <p>Pilih layanan favoritmu dan jadwal penjemputan. Gratis antar-jemput dalam radius 3 km.</p>
+      <a class="btn-blue" href="{% url 'booking' %}">Pesan laundry</a>
+    </section>
+  </div>
+
+  <aside class="po-side">
+    {% if utama %}
+    <section class="address" aria-labelledby="alamat" style="display:block">
+      <h2 id="alamat">Alamat antar-jemput</h2>
+      <p class="addr-name">{{ utama.nama }}</p>
+      <p>{{ utama.alamat }}</p>
+      <p>{{ utama.whatsapp }}</p>
+      <p class="tag">Dalam radius 3 km &middot; Gratis antar-jemput</p>
+    </section>
+    <section class="card" aria-labelledby="catatan">
+      <h2 id="catatan">Catatan pesanan</h2>
+      <p class="addr-name">{{ utama.catatan|default:"Tidak ada catatan khusus." }}</p>
+      <p class="side-hint">Catatan diterima tim outlet. Untuk perubahan, hubungi kami sebelum cucian selesai.</p>
+      <a class="btn-ghost" href="https://wa.me/{{ whatsapp_admin }}" target="_blank" rel="noopener">Chat WhatsApp <svg class="ic"><use href="#i-ext"/></svg></a>
+    </section>
+    {% endif %}
+    <p class="note-box"><svg class="ic"><use href="#i-info"/></svg>Notifikasi akan dikirim saat cucian siap diantar. Tidak perlu mengecek terus-menerus.</p>
+  </aside>
+</div>
+{% endblock %}
