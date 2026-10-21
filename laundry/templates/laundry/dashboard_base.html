@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Beranda{% endblock %} - WuWashy Laundry</title>
   <meta name="robots" content="noindex">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Yellowtail&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'laundry/dashboard.css' %}">
+  {% include 'laundry/_fonts.html' %}
+  <link rel="stylesheet" href="{% static 'laundry/dashboard.css' %}?v=6">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -52,12 +50,13 @@
       {% block nav %}
       {% with aktif=request.resolver_match.url_name %}
       <a class="nav-item{% if aktif == 'dashboard' %} is-active{% endif %}" href="{% url 'dashboard' %}"{% if aktif == 'dashboard' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-home"/></svg>Beranda</a>
+      <a class="nav-item{% if aktif == 'pesan_laundry' %} is-active{% endif %}" href="{% url 'pesan_laundry' %}"{% if aktif == 'pesan_laundry' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-plus-circle"/></svg>Pesan laundry</a>
       <a class="nav-item{% if aktif == 'pesanan_saya' %} is-active{% endif %}" href="{% url 'pesanan_saya' %}"{% if aktif == 'pesanan_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-logo"/></svg>Pesanan saya{% if pesanan_aktif %}<span class="badge">{{ pesanan_aktif }}</span>{% endif %}</a>
       <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-history"/></svg>Riwayat pesanan</span>
       <a class="nav-item{% if aktif == 'poin_hadiah' %} is-active{% endif %}" href="{% url 'poin_hadiah' %}"{% if aktif == 'poin_hadiah' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-gift"/></svg>Poin &amp; hadiah</a>
-      {% endwith %}
       <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-pin"/></svg>Alamat saya</span>
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</span>
+      <a class="nav-item{% if aktif == 'notifikasi' %} is-active{% endif %}" href="{% url 'notifikasi' %}"{% if aktif == 'notifikasi' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</a>
+      {% endwith %}
       <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-search"/></svg>Lacak resi</span>
       {% endblock %}
     </nav>
@@ -69,7 +68,7 @@
         <p>Kami siap bantu cucianmu, setiap hari.</p>
         <a href="https://wa.me/{{ whatsapp_admin }}" target="_blank" rel="noopener">Chat WhatsApp <svg class="ic"><use href="#i-ext"/></svg></a>
       </div>
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</span>
+      <a class="nav-item{% if request.resolver_match.url_name == 'pengaturan' %} is-active{% endif %}" href="{% url 'pengaturan' %}"><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</a>
       <button class="nav-item" type="button" data-open-logout aria-haspopup="dialog"><svg class="ic"><use href="#i-logout"/></svg>Keluar</button>
     </div>
   </aside>
@@ -88,12 +87,13 @@
           <svg class="ic"><use href="#i-search"/></svg>
           <input type="search" placeholder="Cari nomor pesanan..." aria-label="Cari nomor pesanan" disabled>
         </label>
-        <span class="bell is-soon" title="Segera hadir" role="img" aria-label="Notifikasi (segera hadir)"><svg class="ic"><use href="#i-bell"/></svg></span>
+        <a class="bell" href="{% url 'notifikasi' %}" title="Notifikasi" aria-label="Notifikasi"><svg class="ic"><use href="#i-bell"/></svg></a>
       </div>
       {% endblock %}
     </header>
 
     <div class="content">
+      {% if messages %}<ul class="flash" role="status">{% for m in messages %}<li class="flash-{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
       {% block content %}{% endblock %}
     </div>
   </div>

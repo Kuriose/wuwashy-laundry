@@ -1,15 +1,15 @@
 {% extends 'laundry/auth_base.html' %}
-{% block title %}Sign up - WuWashy Laundry{% endblock %}
+{% block title %}Daftar - WuWashy Laundry{% endblock %}
 {% block card %}
-      <p class="auth-eyebrow"><span></span>JOIN WUWASHY</p>
-      <h1>Create your account</h1>
-      <p class="auth-sub">Sign up to book a pickup, track your laundry, and collect rewards in one place.</p>
+      <p class="auth-eyebrow"><span></span>GABUNG WUWASHY</p>
+      <h1>Buat akunmu</h1>
+      <p class="auth-sub">Daftar untuk pesan jemput, pantau cucianmu, dan kumpulkan hadiah di satu tempat.</p>
 
       <form method="post" action="{% url 'signup' %}" novalidate>
         {% csrf_token %}
 
         <div class="field">
-          <label for="{{ form.full_name.id_for_label }}">Full name</label>
+          <label for="{{ form.full_name.id_for_label }}">Nama lengkap</label>
           <div class="input{% if form.full_name.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-user"/></svg>
             {{ form.full_name }}
@@ -18,7 +18,7 @@
         </div>
 
         <div class="field">
-          <label for="{{ form.email.id_for_label }}">Email address</label>
+          <label for="{{ form.email.id_for_label }}">Alamat email</label>
           <div class="input{% if form.email.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-mail"/></svg>
             {{ form.email }}
@@ -27,34 +27,34 @@
         </div>
 
         <div class="field">
-          <label for="{{ form.whatsapp.id_for_label }}">WhatsApp number</label>
+          <label for="{{ form.whatsapp.id_for_label }}">Nomor WhatsApp</label>
           <div class="input{% if form.whatsapp.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-user"/></svg>
             {{ form.whatsapp }}
           </div>
           {% for e in form.whatsapp.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
-          {% if not form.whatsapp.errors %}<p class="field-hint">Used to link your pickup orders and loyalty points.</p>{% endif %}
+          {% if not form.whatsapp.errors %}<p class="field-hint">Dipakai untuk menautkan pesanan dan poin loyalitasmu.</p>{% endif %}
         </div>
 
         <div class="field">
-          <label for="{{ form.password1.id_for_label }}">Password</label>
+          <label for="{{ form.password1.id_for_label }}">Kata sandi</label>
           <div class="input{% if form.password1.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-lock"/></svg>
             {{ form.password1 }}
-            <button class="toggle-pw" type="button" aria-label="Show password" aria-pressed="false">
+            <button class="toggle-pw" type="button" aria-label="Tampilkan kata sandi" aria-pressed="false">
               <svg class="ic"><use href="#i-eye-off"/></svg>
             </button>
           </div>
           {% for e in form.password1.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
-          {% if not form.password1.errors %}<p class="field-hint">At least 8 characters, not too common, and not all numbers.</p>{% endif %}
+          {% if not form.password1.errors %}<p class="field-hint">Minimal 8 karakter, tidak terlalu umum, dan bukan angka semua.</p>{% endif %}
         </div>
 
         <div class="field">
-          <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+          <label for="{{ form.password2.id_for_label }}">Konfirmasi kata sandi</label>
           <div class="input{% if form.password2.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-lock"/></svg>
             {{ form.password2 }}
-            <button class="toggle-pw" type="button" aria-label="Show password" aria-pressed="false">
+            <button class="toggle-pw" type="button" aria-label="Tampilkan kata sandi" aria-pressed="false">
               <svg class="ic"><use href="#i-eye-off"/></svg>
             </button>
           </div>
@@ -65,8 +65,8 @@
         <div class="form-error" role="alert">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
         {% endif %}
 
-        <button class="btn-login" type="submit">Create account <svg class="ic"><use href="#i-arrow"/></svg></button>
+        <button class="btn-login" type="submit">Buat akun <svg class="ic"><use href="#i-arrow"/></svg></button>
       </form>
 
-      <p class="signup">Already have an account? <a class="link" href="{% url 'login' %}">Log in</a></p>
+      <p class="signup">Sudah punya akun? <a class="link" href="{% url 'login' %}">Masuk</a></p>
 {% endblock %}
