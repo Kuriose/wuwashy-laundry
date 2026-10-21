@@ -17,6 +17,11 @@ urlpatterns = [
     path('notifikasi/', views.notifikasi, name='notifikasi'),
     path('pengaturan/', views.pengaturan, name='pengaturan'),
     path('panel/', views.admin_dashboard, name='admin_dashboard'),
+    path('panel/pesanan/', views.admin_pesanan, name='admin_pesanan'),
+    path('panel/pesanan/menunggu/', views.admin_menunggu, name='admin_menunggu'),
+    path('panel/pesanan/diproses/', views.admin_diproses, name='admin_diproses'),
+    path('panel/pesanan/selesai/', views.admin_selesai, name='admin_selesai'),
+    path('panel/pesanan/dibatalkan/', views.admin_dibatalkan, name='admin_dibatalkan'),
     path('panel/pesanan/<int:pk>/', views.admin_pesanan_detail, name='admin_pesanan_detail'),
     path('logout/', LogoutView.as_view(), name='logout'),
 ]

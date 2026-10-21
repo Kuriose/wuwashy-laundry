@@ -1,0 +1,125 @@
+{% extends 'laundry/panel_base.html' %}
+{% block title %}{{ judul }}{% endblock %}
+{% block crumb %}{{ judul }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>{{ judul }}</h1>
+    <p>{{ subjudul }}</p>
+  </div>
+  <a class="btn-lime" href="{% url 'booking' %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Buat Pesanan</a>
+</header>
+
+<section class="stats stats-3" aria-label="Ringkasan tampilan" style="margin-top:28px">
+  <article class="stat">
+    <p class="stat-label">Pesanan dalam tampilan</p>
+    <p class="stat-value">{{ jumlah }}</p>
+    <p class="stat-hl">{{ label_periode }}</p>
+    <p class="stat-note">{{ outlet_nama }}</p>
+  </article>
+  <article class="stat">
+    <p class="stat-label">Pesanan masuk hari ini</p>
+    <p class="stat-value">{{ masuk_hari_ini }}</p>
+    <p class="stat-hl">Diperbarui pukul {{ sekarang|date:"H.i" }}</p>
+    <p class="stat-note">Semua layanan laundry</p>
+  </article>
+  <article class="stat">
+    <p class="stat-label">Siap Diambil</p>
+    <p class="stat-value">{{ sidebar.siap }}</p>
+    <p class="stat-hl">Menunggu penyerahan ke pelanggan</p>
+    <p class="stat-note">Termasuk dalam semua pesanan</p>
+  </article>
+</section>
+
+<div class="toolbar">
+  <form class="searchbox" method="get" action="" role="search">
+    <label for="cari" class="sr-only">Cari pesanan</label>
+    <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+    <input id="cari" type="search" name="q" value="{{ q }}" maxlength="100"
+           placeholder="Cari nomor pesanan, nama, atau telepon" autocomplete="off">
+    {% for k,v in periode_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  </form>
+
+  <details class="range" id="range-dp">
+    <summary class="range-btn"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>{{ label_periode }}</summary>
+    <form class="range-pop" method="get" action="">
+      {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+      <label>Dari<input type="date" name="dari" value="{{ dari|date:'Y-m-d' }}" required></label>
+      <label>Sampai<input type="date" name="sampai" value="{{ sampai|date:'Y-m-d' }}" required></label>
+      <button class="btn-lime" type="submit">Terapkan</button>
+      <p class="range-quick"><a href="?{{ qs_bulan_ini }}">Bulan ini</a><a href="?{{ qs_semua_waktu }}">Semua waktu</a></p>
+    </form>
+  </details>
+</div>
+
+<div class="card table-card">
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Daftar pesanan – {{ judul }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">ID Pesanan</th>
+          <th scope="col">Pelanggan</th>
+          <th scope="col">Tanggal</th>
+          <th scope="col">Layanan</th>
+          <th scope="col">Total</th>
+          <th scope="col">Status</th>
+          <th scope="col">Penyerahan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in baris %}
+        <tr>
+          <td class="id"><a href="{% url 'admin_pesanan_detail' o.pk %}">{{ o.resi }}</a></td>
+          <td><strong>{{ o.nama }}</strong><small>{{ o.whatsapp }}</small></td>
+          <td class="muted">{{ o.tanggal|date:"j M Y" }}</td>
+          <td>{{ o.layanan }}</td>
+          <td class="num">Rp {{ o.total }}</td>
+          <td><span class="pill st-{{ o.status_key }}"><i></i>{{ o.status_label }}</span></td>
+          <td class="muted">{{ o.penyerahan }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-row">
+          {% if filter_aktif %}
+            Tidak ada pesanan yang cocok dengan filter ini.
+            <a class="link-go" href="?">Atur ulang filter</a>
+          {% else %}
+            Belum ada pesanan pada periode ini.
+          {% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="table-foot">
+    <p>{% if baris %}Menampilkan {{ mulai }}&ndash;{{ akhir }} dari {{ jumlah }} pesanan{% else %}Menampilkan 0 pesanan{% endif %}</p>
+    {% if halaman.paginator.num_pages > 1 %}
+    <nav class="pager" aria-label="Halaman pesanan">
+      {% if url_sebelumnya %}
+        <a class="pg-arrow prev" href="{{ url_sebelumnya }}" aria-label="Halaman sebelumnya"><svg class="ic"><use href="#i-chev"/></svg></a>
+      {% else %}
+        <span class="pg-arrow prev is-off" aria-hidden="true"><svg class="ic"><use href="#i-chev"/></svg></span>
+      {% endif %}
+      {% for h in nomor %}
+        {% if h.titik %}<span class="pg-dots" aria-hidden="true">&hellip;</span>
+        {% else %}<a class="pg{% if h.aktif %} is-on{% endif %}" href="{{ h.url }}"{% if h.aktif %} aria-current="page"{% endif %} aria-label="Halaman {{ h.n }}">{{ h.n }}</a>{% endif %}
+      {% endfor %}
+      {% if url_berikutnya %}
+        <a class="pg-arrow" href="{{ url_berikutnya }}" aria-label="Halaman berikutnya"><svg class="ic"><use href="#i-chev"/></svg></a>
+      {% else %}
+        <span class="pg-arrow is-off" aria-hidden="true"><svg class="ic"><use href="#i-chev"/></svg></span>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</div>
+
+{% if hint %}<p class="list-hint muted-hint">{{ hint }}</p>{% endif %}
+{% if baris %}<p class="list-hint">Pilih <a href="{% url 'admin_pesanan_detail' baris.0.pk %}">{{ baris.0.resi }}</a> untuk melihat rincian pesanan.</p>{% endif %}
+
+<script>
+  const dp = document.getElementById('range-dp');
+  document.addEventListener('click', e => { if (dp.open && !dp.contains(e.target)) dp.open = false; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && dp.open) { dp.open = false; dp.querySelector('summary').focus(); } });
+</script>
+{% endblock %}

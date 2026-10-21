@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -337,6 +338,107 @@ class BookingModelTests(TestCase):
         langkah = buat_booking(status='siap').langkah
         self.assertEqual([x['now'] for x in langkah].index(True), 3)
         self.assertEqual(buat_booking(status='dibatalkan').langkah, [])
+
+
+class PanelNavTests(TestCase):
+    """Overview dan Semua Pesanan di sidebar; Menunggu / Diproses / Selesai / Dibatalkan."""
+
+    def setUp(self):
+        self.admin = buat_user('ayu@wuwashy.id', role=Profile.Role.ADMIN, first_name='Ayu', last_name='Pratiwi')
+        self.client.force_login(self.admin)
+
+    # ── Overview ───────────────────────────────────────────────────────────────
+    def test_overview_aktif_di_dasbor(self):
+        r = self.client.get(reverse('admin_dashboard'))
+        self.assertContains(r, 'is-active" href="/panel/"')
+        self.assertContains(r, '<strong aria-current="page">Overview</strong>')
+
+    def test_overview_tidak_aktif_di_halaman_lain(self):
+        for url in ['admin_pesanan','admin_menunggu','admin_diproses','admin_selesai','admin_dibatalkan']:
+            r = self.client.get(reverse(url))
+            self.assertNotContains(r, 'is-active" href="/panel/"', msg_prefix=url)
+
+    # ── Semua Pesanan ──────────────────────────────────────────────────────────
+    def test_semua_pesanan_hanya_admin(self):
+        self.client.logout()
+        self.assertRedirects(self.client.get(reverse('admin_pesanan')),
+                             f"{reverse('login')}?next={reverse('admin_pesanan')}")
+
+    def test_semua_pesanan_aktif_di_sidebar(self):
+        r = self.client.get(reverse('admin_pesanan'))
+        self.assertContains(r, 'is-active" href="/panel/pesanan/"')
+        self.assertContains(r, '<strong aria-current="page">Semua Pesanan</strong>')
+
+    def test_semua_pesanan_semua_status_tampil(self):
+        for st in ('menunggu','diproses','selesai','dibatalkan'):
+            buat_booking(status=st)
+        r = self.client.get(reverse('admin_pesanan'), {'periode': 'semua'})
+        self.assertEqual(len(r.context['baris']), 4)
+
+    # ── Menunggu ───────────────────────────────────────────────────────────────
+    def test_menunggu_hanya_status_menunggu(self):
+        buat_booking(status='menunggu')
+        buat_booking(status='diproses')
+        buat_booking(status='selesai')
+        r = self.client.get(reverse('admin_menunggu'), {'periode': 'semua'})
+        self.assertEqual(len(r.context['baris']), 1)
+        self.assertEqual(r.context['baris'][0]['status_key'], 'menunggu')
+
+    def test_menunggu_aktif_di_sidebar(self):
+        r = self.client.get(reverse('admin_menunggu'))
+        self.assertContains(r, 'is-active" href="/panel/pesanan/menunggu/"')
+        self.assertContains(r, '<strong aria-current="page">Menunggu</strong>')
+
+    # ── Diproses ───────────────────────────────────────────────────────────────
+    def test_diproses_mencakup_dijemput_dan_diproses(self):
+        buat_booking(status='dijemput')
+        buat_booking(status='diproses')
+        buat_booking(status='menunggu')
+        r = self.client.get(reverse('admin_diproses'), {'periode': 'semua'})
+        self.assertEqual(len(r.context['baris']), 2)
+
+    # ── Selesai ────────────────────────────────────────────────────────────────
+    def test_selesai_hanya_status_selesai(self):
+        buat_booking(status='selesai')
+        buat_booking(status='dibatalkan')
+        r = self.client.get(reverse('admin_selesai'), {'periode': 'semua'})
+        self.assertEqual(len(r.context['baris']), 1)
+        self.assertEqual(r.context['baris'][0]['status_key'], 'selesai')
+
+    # ── Dibatalkan ─────────────────────────────────────────────────────────────
+    def test_dibatalkan_hanya_status_dibatalkan(self):
+        buat_booking(status='dibatalkan')
+        buat_booking(status='selesai')
+        r = self.client.get(reverse('admin_dibatalkan'), {'periode': 'semua'})
+        self.assertEqual(len(r.context['baris']), 1)
+        self.assertEqual(r.context['baris'][0]['status_key'], 'dibatalkan')
+
+    # ── Pencarian & pager ──────────────────────────────────────────────────────
+    def test_pencarian_nama_dan_telepon(self):
+        buat_booking(nama='Rina Sari')   # whatsapp=081234567890
+        buat_booking(nama='Budi Santoso')   # <<< fix: buat_booking selalu 081234567890, ganti pakai whatsapp lain
+        from laundry.models import Booking; Booking.objects.filter(nama='Budi Santoso').update(whatsapp='085599887766')
+        r = self.client.get(reverse('admin_pesanan'), {'q':'rina','periode':'semua'})
+        self.assertEqual(len(r.context['baris']), 1)
+        self.assertEqual(r.context['baris'][0]['nama'], 'Rina Sari')
+        r2 = self.client.get(reverse('admin_pesanan'), {'q':'0812-3456-7890','periode':'semua'})
+        self.assertEqual(len(r2.context['baris']), 1)
+
+    def test_paginasi_8_per_halaman(self):
+        for i in range(9): buat_booking(nama=f'P{i}')
+        r = self.client.get(reverse('admin_pesanan'))
+        self.assertEqual(len(r.context['baris']), 8)
+        r2 = self.client.get(reverse('admin_pesanan'), {'hal': 2})
+        self.assertEqual(len(r2.context['baris']), 1)
+
+    def test_hint_menunggu_tampil(self):
+        buat_booking(status='menunggu')
+        r = self.client.get(reverse('admin_menunggu'))
+        self.assertContains(r, 'Penyerahan dicatat saat laundry diterima pelanggan.')
+
+    def test_overview_link_ke_semua_pesanan(self):
+        r = self.client.get(reverse('admin_dashboard'))
+        self.assertContains(r, f'href="{reverse('admin_pesanan')}"')
 
 
 class PanelRingkasanTests(TestCase):

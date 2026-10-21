@@ -267,6 +267,56 @@ def _konteks_panel(request):
 
 
 @admin_required
+def admin_pesanan(request):
+    return render(request, 'laundry/admin_pesanan.html', {
+        **_konteks_panel(request),
+        **panel.daftar_pesanan(request.GET, 'admin_pesanan'),
+        'judul': 'Semua Pesanan', 'subjudul': 'Kelola seluruh pesanan laundry dalam satu tempat.',
+    })
+
+
+@admin_required
+def admin_menunggu(request):
+    return render(request, 'laundry/admin_pesanan.html', {
+        **_konteks_panel(request),
+        **panel.daftar_pesanan(request.GET, 'admin_menunggu'),
+        'judul': 'Menunggu',
+        'subjudul': 'Pantau pesanan dengan status Menunggu.',
+        'hint': 'Penyerahan dicatat saat laundry diterima pelanggan.',
+    })
+
+
+@admin_required
+def admin_diproses(request):
+    return render(request, 'laundry/admin_pesanan.html', {
+        **_konteks_panel(request),
+        **panel.daftar_pesanan(request.GET, 'admin_diproses'),
+        'judul': 'Diproses',
+        'subjudul': 'Pantau pesanan yang sedang dalam proses pencucian.',
+    })
+
+
+@admin_required
+def admin_selesai(request):
+    return render(request, 'laundry/admin_pesanan.html', {
+        **_konteks_panel(request),
+        **panel.daftar_pesanan(request.GET, 'admin_selesai'),
+        'judul': 'Selesai',
+        'subjudul': 'Daftar pesanan yang telah selesai dikerjakan.',
+    })
+
+
+@admin_required
+def admin_dibatalkan(request):
+    return render(request, 'laundry/admin_pesanan.html', {
+        **_konteks_panel(request),
+        **panel.daftar_pesanan(request.GET, 'admin_dibatalkan'),
+        'judul': 'Dibatalkan',
+        'subjudul': 'Daftar pesanan yang dibatalkan.',
+    })
+
+
+@admin_required
 def admin_pesanan_detail(request, pk):
     """Detail satu pesanan + form ubah status. Memakai .save() agar signal pemberi poin ikut jalan."""
     b = get_object_or_404(Booking.objects.select_related('user'), pk=pk)

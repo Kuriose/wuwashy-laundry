@@ -1,12 +1,15 @@
 """Data ringkasan untuk dashboard admin (view tetap tipis, logika hitung di sini)."""
-from datetime import date
+from datetime import date, datetime, time, timedelta
+from urllib.parse import urlencode
 
-from django.db.models import Count
+
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.db.models.functions import TruncDate
-from django.utils import timezone
+from django.utils import formats, timezone
 
 from .models import Booking
-from .services import rupiah
+from .services import normalisasi_wa, rupiah
 
 # (kunci, label, status Booking yang masuk kelompok, warna di donut)
 KELOMPOK = (
@@ -129,4 +132,134 @@ def ringkasan(sekarang=None):
         'terbaru': terbaru,
         'jumlah_terbaru': len(terbaru),
         'jumlah_semua': rupiah(sum(semua_jml.values())),
+    }
+
+
+# ─────────────────────────────────────── DAFTAR PESANAN ───────────────────────
+PER_HALAMAN = 8
+
+# Kelompok status untuk halaman filter (None = semua)
+STATUS_HALAMAN = {
+    'admin_pesanan':   None,
+    'admin_menunggu':  ('menunggu',),
+    'admin_diproses':  ('dijemput', 'diproses'),
+    'admin_selesai':   ('selesai',),
+    'admin_dibatalkan':('dibatalkan',),
+}
+
+
+def _baris(b):
+    kunci, label = kelompok_status(b.status)
+    return {
+        'pk': b.pk, 'resi': b.resi, 'nama': b.nama, 'whatsapp': b.whatsapp,
+        'tanggal': timezone.localtime(b.dibuat), 'layanan': b.nama_layanan,
+        'total': rupiah(b.total), 'penyerahan': b.penyerahan,
+        'status_key': kunci, 'status_label': label,
+    }
+
+
+def _tanggal(teks):
+    try:
+        return date.fromisoformat((teks or '').strip())
+    except ValueError:
+        return None
+
+
+def label_periode(dari, sampai):
+    if not dari or not sampai:
+        return 'Semua waktu'
+    if dari == sampai:
+        return formats.date_format(dari, 'j F Y')
+    if (dari.year, dari.month) == (sampai.year, sampai.month):
+        return f'{dari.day}–{formats.date_format(sampai, "j F Y")}'
+    if dari.year == sampai.year:
+        return f'{formats.date_format(dari, "j F")} – {formats.date_format(sampai, "j F Y")}'
+    return f'{formats.date_format(dari, "j F Y")} – {formats.date_format(sampai, "j F Y")}'
+
+
+def _kandidat_wa(q):
+    digit = ''.join(c for c in q if c.isdigit())
+    if len(digit) < 3:
+        return set()
+    kandidat = {digit}
+    if digit.startswith('0'):   kandidat.add('62' + digit[1:])
+    elif digit.startswith('62'):candidat.add('0' + digit[2:])
+    elif digit.startswith('8'): kandidat.update({'0'+digit, '62'+digit})
+    norm = normalisasi_wa(q)
+    if norm: kandidat.update({norm, '0'+norm[2:]})
+    return kandidat
+
+
+def _qs(**kw):
+    return urlencode({k: v for k, v in kw.items() if v})
+
+
+def daftar_pesanan(params, url_name='admin_pesanan', sekarang=None):
+    """Data halaman daftar pesanan.
+
+    url_name menentukan filter status: None = semua, ('menunggu',) = hanya menunggu, dst.
+    Bawaan periode: bulan berjalan. Tanggal rusak diabaikan.
+    """
+    sekarang  = timezone.localtime(sekarang or timezone.now())
+    hari_ini  = sekarang.date()
+    bulan_ini = hari_ini.replace(day=1)
+    zona      = timezone.get_current_timezone()
+    filter_status = STATUS_HALAMAN.get(url_name)
+
+    q           = (params.get('q') or '').strip()[:100]
+    semua_waktu = params.get('periode') == 'semua'
+    dari_in     = _tanggal(params.get('dari'))
+    sampai_in   = _tanggal(params.get('sampai'))
+
+    if semua_waktu:
+        dari = sampai = None
+    else:
+        dari, sampai = dari_in or bulan_ini, sampai_in or hari_ini
+        if dari > sampai:
+            dari, sampai = sampai, dari
+    periode_kustom = semua_waktu or bool(dari_in or sampai_in)
+
+    qs = Booking.objects.all()
+    if filter_status:
+        qs = qs.filter(status__in=filter_status)
+    if dari:
+        qs = qs.filter(dibuat__gte=timezone.make_aware(datetime.combine(dari, time.min), zona))
+    if sampai:
+        qs = qs.filter(dibuat__lt=timezone.make_aware(datetime.combine(sampai + timedelta(days=1), time.min), zona))
+    if q:
+        cocok = Q(resi__icontains=q) | Q(nama__icontains=q)
+        for nomor in _kandidat_wa(q): cocok |= Q(whatsapp__contains=nomor)
+        qs = qs.filter(cocok)
+    qs = qs.order_by('-dibuat', '-id')
+
+    halaman   = Paginator(qs, PER_HALAMAN).get_page(params.get('hal'))
+    paginator = halaman.paginator
+
+    dasar = {'q': q}
+    if semua_waktu:       dasar['periode'] = 'semua'
+    elif periode_kustom:  dasar.update(dari=dari.isoformat(), sampai=sampai.isoformat())
+
+    nomor = []
+    for n in paginator.get_elided_page_range(halaman.number, on_each_side=2, on_ends=1):
+        if n == Paginator.ELLIPSIS: nomor.append({'titik': True})
+        else: nomor.append({'n': n, 'url': '?'+_qs(**dasar, hal=n if n>1 else ''), 'aktif': n==halaman.number})
+
+    return {
+        'q': q, 'dari': dari, 'sampai': sampai, 'semua_waktu': semua_waktu,
+        'label_periode': label_periode(dari, sampai),
+        'filter_aktif': bool(q) or periode_kustom,
+        'periode_hidden': [(k,v) for k,v in dasar.items() if k!='q'],
+        'qs_bulan_ini':   _qs(q=q),
+        'qs_semua_waktu': _qs(q=q, periode='semua'),
+        'baris':  [_baris(b) for b in halaman.object_list],
+        'halaman': halaman,
+        'jumlah':  rupiah(paginator.count),
+        'mulai':   halaman.start_index() if paginator.count else 0,
+        'akhir':   halaman.end_index()   if paginator.count else 0,
+        'nomor':   nomor,
+        'url_sebelumnya': '?'+_qs(**dasar, hal=halaman.number-1 if halaman.number>2 else '') if halaman.has_previous() else '',
+        'url_berikutnya': '?'+_qs(**dasar, hal=halaman.number+1) if halaman.has_next() else '',
+        'sekarang': sekarang,
+        'masuk_hari_ini': rupiah(Booking.objects.filter(
+            dibuat__gte=timezone.make_aware(datetime.combine(hari_ini, time.min), zona)).count()),
     }
