@@ -8,7 +8,7 @@
     <h2 id="sapa">Halo, {{ nama_depan }}! Siap tampil fresh?</h2>
     <p>Pantau cucianmu atau jadwalkan penjemputan baru di sini.</p>
   </div>
-  <a class="btn-white" href="{% url 'booking' %}"><svg class="ic"><use href="#i-plus"/></svg>Pesan laundry</a>
+  <a class="btn-white" href="{% url 'pesan_laundry' %}"><svg class="ic"><use href="#i-plus"/></svg>Pesan laundry</a>
   <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
 </section>
 
@@ -21,7 +21,7 @@
         <strong>Belum ada cucian yang diproses</strong>
         <p>Pesan penjemputan dan statusnya akan muncul di sini.</p>
       </div>
-      <a class="btn-blue" href="{% url 'booking' %}">Pesan laundry</a>
+      <a class="btn-blue" href="{% url 'pesan_laundry' %}">Pesan laundry</a>
     </div>
   </section>
 
@@ -45,8 +45,8 @@
       <div class="section-head"><h2 id="layanan">Pilih layananmu</h2><span>{{ layanan|length }} layanan tersedia</span></div>
       <div class="services">
         {% for s in layanan %}
-        <a class="service" href="{% url 'booking' %}?layanan={{ s.key }}">
-          <img src="{% static 'laundry/img/' %}{{ s.img }}" alt="">
+        <a class="service" href="{% url 'pesan_laundry' %}?layanan={{ s.key }}">
+          {% if s.img %}<img src="{% static 'laundry/img/' %}{{ s.img }}" alt="">{% else %}<div class="ph-photo" role="img" aria-label="Foto belum tersedia">Photo</div>{% endif %}
           <h3>{{ s.nama }}</h3>
           <p class="price">Rp {{ s.harga_fmt }} <small>/{{ s.satuan }}</small></p>
           <p class="eta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>{{ s.estimasi|cut:"Selesai dalam " }}</p>

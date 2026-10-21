@@ -61,8 +61,8 @@ class LoginTests(TestCase):
 
     def test_halaman_login_tampil(self):
         r = self.client.get(self.url)
-        self.assertContains(r, 'Welcome back!')
-        self.assertContains(r, 'Enter your email address')
+        self.assertContains(r, 'Selamat datang kembali!')
+        self.assertContains(r, 'Masukkan alamat emailmu')
 
     def test_login_email_tidak_peka_huruf(self):
         r = self._post(username='BUDI@example.COM')
@@ -72,24 +72,24 @@ class LoginTests(TestCase):
     def test_password_salah(self):
         r = self._post(password='salah')
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Incorrect email or password')
+        self.assertContains(r, 'Email atau kata sandi salah')
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_email_tidak_terdaftar(self):
         r = self._post(username='nobody@example.com')
-        self.assertContains(r, 'Incorrect email or password')
+        self.assertContains(r, 'Email atau kata sandi salah')
 
     def test_email_tidak_valid(self):
-        self.assertContains(self._post(username='bukan-email'), 'valid email address')
+        self.assertContains(self._post(username='bukan-email'), 'alamat email yang valid')
 
     def test_akun_nonaktif_ditolak(self):
         self.user.is_active = False
         self.user.save()
-        self.assertContains(self._post(), 'Incorrect email or password')
+        self.assertContains(self._post(), 'Email atau kata sandi salah')
 
     def test_email_ganda_ditolak(self):
         User.objects.create_user('budi2', 'budi@example.com', self.PASSWORD)
-        self.assertContains(self._post(), 'Incorrect email or password')
+        self.assertContains(self._post(), 'Email atau kata sandi salah')
 
     def test_remember_me(self):
         self._post()
@@ -157,8 +157,8 @@ class SignUpTests(TestCase):
 
     def test_halaman_signup_tampil(self):
         r = self.client.get(self.url)
-        self.assertContains(r, 'Create your account')
-        self.assertContains(r, 'Confirm password')
+        self.assertContains(r, 'Buat akunmu')
+        self.assertContains(r, 'Konfirmasi kata sandi')
 
     def test_link_signup_dari_login(self):
         self.assertContains(self.client.get(reverse('login')), f'href="{self.url}"')
@@ -187,12 +187,12 @@ class SignUpTests(TestCase):
     def test_email_sudah_terdaftar_tidak_peka_huruf(self):
         buat_user('nadia@example.com')
         r = self._post(email='NADIA@example.com')
-        self.assertContains(r, 'already exists')
+        self.assertContains(r, 'sudah terdaftar')
         self.assertEqual(User.objects.count(), 1)
 
     def test_password_tidak_sama(self):
         r = self._post(password2='beda-sekali-123')
-        self.assertContains(r, "passwords don")
+        self.assertContains(r, "Kedua kata sandi tidak sama")
         self.assertFalse(User.objects.exists())
 
     def test_password_lemah_ditolak(self):
@@ -208,11 +208,11 @@ class SignUpTests(TestCase):
 
     def test_field_wajib_dan_email_valid(self):
         r = self.client.post(self.url, {})
-        self.assertContains(r, 'Please enter your full name.')
-        self.assertContains(r, 'Please enter your email address.')
-        self.assertContains(r, 'Please create a password.')
-        self.assertContains(r, 'Please enter your WhatsApp number.')
-        self.assertContains(self._post(email='bukan-email'), 'valid email address')
+        self.assertContains(r, 'Masukkan nama lengkapmu.')
+        self.assertContains(r, 'Masukkan alamat emailmu.')
+        self.assertContains(r, 'Buat kata sandimu.')
+        self.assertContains(r, 'Masukkan nomor WhatsAppmu.')
+        self.assertContains(self._post(email='bukan-email'), 'alamat email yang valid')
 
     def test_sudah_login_dialihkan(self):
         buat_user()
@@ -443,14 +443,14 @@ class SignUpWhatsAppTests(TestCase):
         self.assertEqual(User.objects.get(email='nadia@example.com').profile.whatsapp, '628123456789')
 
     def test_nomor_tidak_valid_ditolak(self):
-        self.assertContains(self._post(whatsapp='abc'), 'valid WhatsApp number')
+        self.assertContains(self._post(whatsapp='abc'), 'nomor WhatsApp yang valid')
         self.assertFalse(User.objects.filter(email='nadia@example.com').exists())
 
     def test_nomor_sudah_dipakai_akun_lain_ditolak(self):
         self._post()
         self.client.logout()
         r = self._post(email='lain@example.com', whatsapp='+62 812-3456-789')
-        self.assertContains(r, 'already used by another account')
+        self.assertContains(r, 'sudah dipakai akun lain')
 
 
 BOOKING_DATA = {'nama': 'Nadia Aulia', 'whatsapp': '081234567890', 'layanan': 'express',
@@ -671,10 +671,10 @@ class PoinHadiahTests(TestCase):
         self.assertEqual([h['key'] for h in r.context['hadiah']], ['voucher-5000'])
 
     def test_semua_hadiah_bisa_saat_saldo_cukup(self):
-        PoinLog.objects.create(user=self.user, jumlah=1200, saldo=1200, keterangan='Penyesuaian')
+        PoinLog.objects.create(user=self.user, jumlah=1500, saldo=1500, keterangan='Penyesuaian')
         self.client.force_login(self.user)
         r = self.client.get(self.url)
-        self.assertEqual((r.context['target']['key'], r.context['target_persen']), ('voucher-10000', 100))
+        self.assertEqual((r.context['target']['key'], r.context['target_persen']), ('gratis-cuci', 100))
         self.assertContains(r, 'sudah bisa ditukar')
 
     def test_riwayat_poin_menampilkan_resi_dan_saldo(self):
@@ -732,7 +732,7 @@ class AdminPesananDetailTests(TestCase):
         r = self.client.get(self.url)
         self.assertContains(r, f'Pesanan {self.b.resi}')
         self.assertContains(r, 'Rp 60.000')
-        self.assertContains(r, '5 kg')
+        self.assertContains(r, '5 pcs')
         self.assertContains(r, 'nadia@example.com')
         self.assertContains(r, 'Akan mendapat +60 poin saat pesanan selesai.')
 
@@ -797,3 +797,48 @@ class AdminPesananDetailTests(TestCase):
     def test_dasbor_menautkan_resi_ke_detail(self):
         self.client.force_login(self.admin)
         self.assertContains(self.client.get(reverse('admin_dashboard')), f'href="{self.url}"')
+
+
+@FAST_HASH
+class DashboardLanjutanTests(TestCase):
+    DATA = {'nama': 'Nadia Aulia', 'whatsapp': '081234567890', 'layanan': 'reguler', 'berat': '5',
+            'alamat': 'Jl. Pramuka No. 12, Samarinda', 'catatan': ''}
+
+    def setUp(self):
+        self.user = buat_user()
+        self.client.force_login(self.user)
+
+    def test_halaman_baru_bisa_dibuka(self):
+        for name in ('pesan_laundry', 'notifikasi', 'pengaturan'):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+
+    def test_pesan_dari_dashboard_tertaut_ke_akun_dan_buka_whatsapp(self):
+        r = self.client.post(reverse('pesan_laundry'), self.DATA)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('wa.me', r['Location'])
+        b = Booking.objects.get()
+        self.assertEqual((b.user, b.asal), (self.user, 'akun'))
+
+    def test_jumlah_pakaian_harus_bilangan_bulat(self):
+        r = self.client.post(reverse('pesan_laundry'), {**self.DATA, 'berat': '2.5'})
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'bilangan bulat')
+        self.assertFalse(Booking.objects.exists())
+
+    def test_tukar_hadiah_mengurangi_saldo(self):
+        PoinLog.objects.create(user=self.user, jumlah=1000, saldo=1000, keterangan='Penyesuaian')
+        r = self.client.post(reverse('tukar_hadiah', args=['voucher-5000']))
+        self.assertRedirects(r, reverse('poin_hadiah'))
+        self.assertEqual(saldo_poin(self.user.pk), 500)
+
+    def test_tukar_hadiah_saldo_kurang_ditolak(self):
+        PoinLog.objects.create(user=self.user, jumlah=100, saldo=100, keterangan='Penyesuaian')
+        self.client.post(reverse('tukar_hadiah', args=['voucher-5000']))
+        self.assertEqual(saldo_poin(self.user.pk), 100)
+        self.assertEqual(PoinLog.objects.count(), 1)
+
+    def test_tukar_hadiah_tidak_dikenal_dan_hanya_post(self):
+        PoinLog.objects.create(user=self.user, jumlah=1000, saldo=1000, keterangan='Penyesuaian')
+        self.client.post(reverse('tukar_hadiah', args=['tidak-ada']))
+        self.assertEqual(saldo_poin(self.user.pk), 1000)
+        self.assertEqual(self.client.get(reverse('tukar_hadiah', args=['voucher-5000'])).status_code, 405)

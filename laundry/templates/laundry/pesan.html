@@ -1,0 +1,20 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% block title %}Pesan laundry{% endblock %}
+{% block heading %}Pesan laundry{% endblock %}
+{% block content %}
+<section class="card pesan" aria-labelledby="pesan-judul">
+  <h2 id="pesan-judul">Isi data penjemputan</h2>
+  <p class="pesan-sub">Setelah dikirim, kamu diarahkan ke WhatsApp admin untuk konfirmasi. Pesanan otomatis tercatat di akunmu.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="pesan-grid">
+      {% for f in form %}
+      <div class="pf{% if f.name == 'alamat' or f.name == 'catatan' %} pf-wide{% endif %}">
+        {{ f.label_tag }}{{ f }}{{ f.errors }}
+      </div>
+      {% endfor %}
+    </div>
+    <button class="btn-blue pesan-btn" type="submit">Kirim via WhatsApp</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% block title %}Pengaturan{% endblock %}
+{% block heading %}Pengaturan{% endblock %}
+{% block content %}
+<section class="card pesan" aria-labelledby="akun-judul">
+  <h2 id="akun-judul">Akun</h2>
+  <dl class="akun">
+    <div><dt>Nama</dt><dd>{{ nama }}</dd></div>
+    <div><dt>Email</dt><dd>{{ email }}</dd></div>
+    <div><dt>Nomor WhatsApp</dt><dd>{{ whatsapp|default:"-" }}</dd></div>
+  </dl>
+  <p class="pesan-sub">Pengaturan akun lainnya akan segera hadir.</p>
+</section>
+{% endblock %}

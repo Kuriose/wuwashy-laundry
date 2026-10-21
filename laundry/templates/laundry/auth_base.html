@@ -1,13 +1,11 @@
 {% load static %}<!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}WuWashy Laundry{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'laundry/login.css' %}">
+  {% include 'laundry/_fonts.html' %}
+  <link rel="stylesheet" href="{% static 'laundry/login.css' %}?v=6">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -27,12 +25,16 @@
   <aside class="auth-visual" aria-hidden="true">
     <svg class="wave wave-outer" viewBox="0 0 1 1" preserveAspectRatio="none"><path d="M0,0 L0.8287,0.0000 L0.8332,0.0125 L0.8386,0.0250 L0.8446,0.0375 L0.8511,0.0500 L0.8578,0.0625 L0.8646,0.0750 L0.8711,0.0875 L0.8772,0.1000 L0.8826,0.1125 L0.8872,0.1250 L0.8908,0.1375 L0.8934,0.1500 L0.8947,0.1625 L0.8947,0.1750 L0.8935,0.1875 L0.8911,0.2000 L0.8874,0.2125 L0.8827,0.2250 L0.8771,0.2375 L0.8707,0.2500 L0.8637,0.2625 L0.8563,0.2750 L0.8488,0.2875 L0.8414,0.3000 L0.8343,0.3125 L0.8277,0.3250 L0.8218,0.3375 L0.8168,0.3500 L0.8129,0.3625 L0.8101,0.3750 L0.8085,0.3875 L0.8082,0.4000 L0.8092,0.4125 L0.8113,0.4250 L0.8147,0.4375 L0.8190,0.4500 L0.8242,0.4625 L0.8302,0.4750 L0.8366,0.4875 L0.8433,0.5000 L0.8500,0.5125 L0.8566,0.5250 L0.8628,0.5375 L0.8684,0.5500 L0.8732,0.5625 L0.8770,0.5750 L0.8797,0.5875 L0.8813,0.6000 L0.8816,0.6125 L0.8807,0.6250 L0.8785,0.6375 L0.8751,0.6500 L0.8706,0.6625 L0.8651,0.6750 L0.8588,0.6875 L0.8519,0.7000 L0.8446,0.7125 L0.8371,0.7250 L0.8297,0.7375 L0.8225,0.7500 L0.8158,0.7625 L0.8097,0.7750 L0.8045,0.7875 L0.8004,0.8000 L0.7973,0.8125 L0.7955,0.8250 L0.7950,0.8375 L0.7957,0.8500 L0.7976,0.8625 L0.8007,0.8750 L0.8049,0.8875 L0.8099,0.9000 L0.8157,0.9125 L0.8221,0.9250 L0.8287,0.9375 L0.8355,0.9500 L0.8421,0.9625 L0.8484,0.9750 L0.8541,0.9875 L0.8591,1.0000 L0,1 Z"/></svg>
     <svg class="wave wave-mid" viewBox="0 0 1 1" preserveAspectRatio="none"><path d="M0,0 L0.7787,0.0000 L0.7832,0.0125 L0.7886,0.0250 L0.7946,0.0375 L0.8011,0.0500 L0.8078,0.0625 L0.8146,0.0750 L0.8211,0.0875 L0.8272,0.1000 L0.8326,0.1125 L0.8372,0.1250 L0.8408,0.1375 L0.8434,0.1500 L0.8447,0.1625 L0.8447,0.1750 L0.8435,0.1875 L0.8411,0.2000 L0.8374,0.2125 L0.8327,0.2250 L0.8271,0.2375 L0.8207,0.2500 L0.8137,0.2625 L0.8063,0.2750 L0.7988,0.2875 L0.7914,0.3000 L0.7843,0.3125 L0.7777,0.3250 L0.7718,0.3375 L0.7668,0.3500 L0.7629,0.3625 L0.7601,0.3750 L0.7585,0.3875 L0.7582,0.4000 L0.7592,0.4125 L0.7613,0.4250 L0.7647,0.4375 L0.7690,0.4500 L0.7742,0.4625 L0.7802,0.4750 L0.7866,0.4875 L0.7933,0.5000 L0.8000,0.5125 L0.8066,0.5250 L0.8128,0.5375 L0.8184,0.5500 L0.8232,0.5625 L0.8270,0.5750 L0.8297,0.5875 L0.8313,0.6000 L0.8316,0.6125 L0.8307,0.6250 L0.8285,0.6375 L0.8251,0.6500 L0.8206,0.6625 L0.8151,0.6750 L0.8088,0.6875 L0.8019,0.7000 L0.7946,0.7125 L0.7871,0.7250 L0.7797,0.7375 L0.7725,0.7500 L0.7658,0.7625 L0.7597,0.7750 L0.7545,0.7875 L0.7504,0.8000 L0.7473,0.8125 L0.7455,0.8250 L0.7450,0.8375 L0.7457,0.8500 L0.7476,0.8625 L0.7507,0.8750 L0.7549,0.8875 L0.7599,0.9000 L0.7657,0.9125 L0.7721,0.9250 L0.7787,0.9375 L0.7855,0.9500 L0.7921,0.9625 L0.7984,0.9750 L0.8041,0.9875 L0.8091,1.0000 L0,1 Z"/></svg>
-    <div class="auth-photo"><img src="{% static 'laundry/img/login.jpg' %}" alt=""></div>
+    <div class="auth-photo">
+      <img class="slide" src="{% static 'laundry/img/login-1.jpg' %}" alt="" style="object-position: 38% 50%">
+      <img class="slide" src="{% static 'laundry/img/login-2.jpg' %}" alt="" style="object-position: 66% 40%">
+      <img class="slide" src="{% static 'laundry/img/login-3.jpg' %}" alt="" style="object-position: 50% 50%">
+    </div>
     <div class="auth-dots"><span class="on"></span><span></span><span></span></div>
   </aside>
 
   <section class="auth-panel">
-    <a class="auth-back" href="{% url 'home' %}"><svg class="ic"><use href="#i-arrow-left"/></svg>Back to home</a>
+    <a class="auth-back" href="{% url 'home' %}"><svg class="ic"><use href="#i-arrow-left"/></svg>Kembali ke beranda</a>
 
     <div class="auth-card">
 {% block card %}{% endblock %}
@@ -48,10 +50,35 @@
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
       btn.setAttribute('aria-pressed', show);
-      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      btn.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
       btn.querySelector('use').setAttribute('href', show ? '#i-eye' : '#i-eye-off');
     });
   });
+</script>
+<script>
+  // foto login bergeser sendiri (kanan ke kiri) tiap beberapa detik; titik di bawahnya ikut berpindah
+  (function () {
+    const slides = Array.from(document.querySelectorAll('.auth-photo .slide'));
+    const dots = Array.from(document.querySelectorAll('.auth-dots span'));
+    if (slides.length < 2) return;
+    let i = 0, timer;
+    slides.forEach((s, k) => { s.style.transform = 'translateX(' + (k === 0 ? 0 : 100) + '%)'; });
+    function go(next) {
+      if (next === i) return;
+      const cur = slides[i], nxt = slides[next];
+      nxt.style.transition = 'none';
+      nxt.style.transform = 'translateX(100%)';
+      void nxt.offsetWidth;
+      cur.style.transition = nxt.style.transition = 'transform .45s ease';
+      cur.style.transform = 'translateX(-100%)';
+      nxt.style.transform = 'translateX(0)';
+      i = next;
+      dots.forEach((d, k) => d.classList.toggle('on', k === i));
+    }
+    function start() { clearInterval(timer); timer = setInterval(() => go((i + 1) % slides.length), 3400); }
+    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); start(); }));
+    start();
+  })();
 </script>
 {% block scripts %}{% endblock %}
 </body>
