@@ -10,22 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+def _muat_env_lokal():
+    """Baca file .env (baris KEY=VALUE) bila ada. Variabel yang sudah diset di environment tidak ditimpa."""
+    berkas = BASE_DIR / '.env'
+    if not berkas.is_file():
+        return
+    for baris in berkas.read_text(encoding='utf-8').splitlines():
+        baris = baris.strip()
+        if not baris or baris.startswith('#') or '=' not in baris:
+            continue
+        kunci, _, nilai = baris.partition('=')
+        os.environ.setdefault(kunci.strip(), nilai.strip().strip('"').strip("'"))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-f-5$y(ynxy&oa_0@06@%y5r!=_25pig8+ept=3+zdbh0+1#l_r'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+_muat_env_lokal()
 
-ALLOWED_HOSTS = []
+
+def _env_daftar(nama, default=''):
+    return [x.strip() for x in os.environ.get(nama, default).split(',') if x.strip()]
+
+
+# Pengaturan lewat environment variable (lihat .env.example).
+# Tanpa file .env, aplikasi tetap jalan untuk pengembangan lokal (DEBUG aktif, kunci pengembangan).
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('DJANGO_SECRET_KEY wajib diisi saat DJANGO_DEBUG=False.')
+    SECRET_KEY = 'django-insecure-hanya-untuk-pengembangan-lokal'  # jangan dipakai di server
+
+ALLOWED_HOSTS = _env_daftar('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1' if DEBUG else '')
+CSRF_TRUSTED_ORIGINS = _env_daftar('DJANGO_CSRF_TRUSTED_ORIGINS')
 
 
 # Application definition
@@ -79,6 +104,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+if os.environ.get('DATABASE_URL'):  # mis. postgres://user:pass@host:5432/nama_db
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(os.environ['DATABASE_URL'], conn_max_age=600)
 
 
 # Password validation
@@ -116,6 +144,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # tujuan `python manage.py collectstatic`
+if not DEBUG:
+    # Produksi: WhiteNoise melayani file static hasil collectstatic (tanpa perlu Nginx).
+    # Mode lokal (DEBUG) tidak memakainya, jadi pengembangan tetap jalan tanpa paket tambahan.
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+    }
 
 
 # Email
@@ -128,7 +165,7 @@ MAILERS = {
 }
 
 # Nomor WhatsApp admin laundry (format internasional tanpa +)
-WHATSAPP_ADMIN = '6281234567890'
+WHATSAPP_ADMIN = os.environ.get('WHATSAPP_ADMIN', '6281234567890')
 
 # Autentikasi: login dengan email (laundry.backends) + username (untuk /admin/)
 AUTHENTICATION_BACKENDS = [
@@ -140,5 +177,14 @@ LOGIN_REDIRECT_URL = 'dashboard'  # lalu diarahkan sesuai role (USER / ADMIN)
 LOGOUT_REDIRECT_URL = 'home'
 
 # Identitas outlet yang tampil di panel admin (sidebar & dialog keluar)
-OUTLET_NAMA = 'Cabang Utama'
-OUTLET_KOTA = 'Samarinda'
+OUTLET_NAMA = os.environ.get('OUTLET_NAMA', 'Cabang Utama')
+OUTLET_KOTA = os.environ.get('OUTLET_KOTA', 'Samarinda')
+
+
+# Keamanan produksi (aktif otomatis saat DJANGO_DEBUG=False)
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # server di belakang proxy HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SSL_REDIRECT', 'True').lower() in ('1', 'true', 'yes')
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))  # naikkan setelah HTTPS stabil

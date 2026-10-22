@@ -1,0 +1,117 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% load static %}
+{% block title %}Riwayat pesanan{% endblock %}
+{% block heading %}Riwayat pesanan{% endblock %}
+{% block content %}
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    <h2 id="sapa">Bersihnya sudah, ceritanya tersimpan.</h2>
+    <p>Lihat pesanan yang selesai, unduh nota, atau pesan kembali layanan favoritmu.</p>
+  </div>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
+</section>
+
+<section class="rw-stats" aria-label="Ringkasan riwayat">
+  <article class="card rw-stat">
+    <h2>Pesanan selesai</h2>
+    <p class="rw-amount">{{ ringkasan.jumlah }} pesanan</p>
+    <p class="rw-label">{{ ringkasan.rentang }}</p>
+  </article>
+  <article class="card rw-stat">
+    <h2>Total transaksi</h2>
+    <p class="rw-amount">Rp {{ ringkasan.total }}</p>
+    <p class="rw-label">Seluruh pesanan selesai</p>
+  </article>
+  <article class="card rw-stat">
+    <h2>Poin didapat</h2>
+    <p class="rw-amount">{{ ringkasan.poin }} poin</p>
+    <p class="rw-label">Sudah masuk ke saldo loyalitas</p>
+  </article>
+</section>
+
+<section class="card rw-card" aria-labelledby="semua">
+  <h2 id="semua">Semua riwayat</h2>
+
+  <form method="get" action="{% url 'riwayat_pesanan' %}" class="rw-filter">
+    <div class="ak-field">
+      <label for="rw-cari">Cari pesanan</label>
+      <input id="rw-cari" type="text" name="cari" value="{{ riwayat.cari }}" placeholder="Nomor pesanan atau layanan" maxlength="50" autocomplete="off">
+    </div>
+    <div class="ak-field">
+      <label for="rw-periode">Periode</label>
+      <select id="rw-periode" name="periode">
+        {% for nilai, nama in riwayat.PERIODE %}<option value="{{ nilai }}"{% if riwayat.periode == nilai %} selected{% endif %}>{{ nama }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="ak-field">
+      <label for="rw-layanan">Layanan</label>
+      <select id="rw-layanan" name="layanan">
+        <option value="">Semua layanan</option>
+        {% for kode, nama in riwayat.pilihan_layanan %}<option value="{{ kode }}"{% if riwayat.layanan == kode %} selected{% endif %}>{{ nama }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="rw-apply" type="submit">Terapkan filter</button>
+  </form>
+
+  <div class="rw-table" role="table" aria-label="Daftar riwayat pesanan">
+    <div class="rw-head" role="row">
+      <span role="columnheader">PESANAN</span>
+      <span role="columnheader">LAYANAN</span>
+      <span role="columnheader">TOTAL &amp; POIN</span>
+      <span role="columnheader">STATUS</span>
+      <span role="columnheader">AKSI</span>
+    </div>
+
+    {% for b in halaman %}
+    <div class="rw-record" role="row">
+      <div class="rw-cells">
+        <div class="rw-cell" role="cell">
+          <b>#{{ b.resi }}</b>
+          <small>{{ b.dibuat|date:"j M Y" }}</small>
+        </div>
+        <div class="rw-cell" role="cell">
+          <span>{{ b.nama_layanan }}</span>
+          <small>{{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }}</small>
+        </div>
+        <div class="rw-cell" role="cell">
+          <b>Rp {{ b.total_fmt }}</b>
+          {% if b.poin_didapat %}<small class="gr">+{{ b.poin_didapat }} poin</small>{% else %}<small>&nbsp;</small>{% endif %}
+        </div>
+        <div class="rw-cell" role="cell">
+          <span class="rw-badge{% if b.status == 'dibatalkan' %} is-batal{% endif %}">{{ b.get_status_display }}</span>
+          <a class="rw-detail" href="{% url 'cari_pesanan' %}?q={{ b.resi }}">Lihat detail &rarr;</a>
+        </div>
+        <div class="rw-cell rw-aksi" role="cell">
+          <a class="rw-again" href="{% url 'booking' %}?layanan={{ b.layanan }}">Pesan lagi</a>
+        </div>
+      </div>
+      <hr class="ak-divider">
+    </div>
+    {% empty %}
+    <div class="empty rw-empty">
+      <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-history"/></svg></span>
+      <div>
+        {% if riwayat.ada_filter %}
+        <strong>Tidak ada pesanan yang cocok</strong>
+        <p>Coba ubah kata kunci atau filter, atau <a href="{% url 'riwayat_pesanan' %}">tampilkan semua riwayat</a>.</p>
+        {% else %}
+        <strong>Belum ada riwayat pesanan</strong>
+        <p>Pesanan yang sudah selesai akan tersimpan di sini.</p>
+        {% endif %}
+      </div>
+      <a class="btn-blue" href="{% url 'booking' %}">Pesan sekarang</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="rw-foot">
+    <p>Menampilkan {{ halaman|length }} dari {{ halaman.paginator.count }} pesanan</p>
+    {% if halaman.has_previous %}<a class="rw-pg" href="?{{ riwayat.qs_halaman }}page={{ halaman.previous_page_number }}">&larr; Sebelumnya</a>{% else %}<span class="rw-pg is-off" aria-disabled="true">&larr; Sebelumnya</span>{% endif %}
+    <span class="rw-chip" aria-label="Halaman {{ halaman.number }} dari {{ halaman.paginator.num_pages }}">{{ halaman.number }}</span>
+    {% if halaman.has_next %}<a class="rw-pg" href="?{{ riwayat.qs_halaman }}page={{ halaman.next_page_number }}">Berikutnya &rarr;</a>{% else %}<span class="rw-pg is-off" aria-disabled="true">Berikutnya &rarr;</span>{% endif %}
+  </div>
+</section>
+
+<p class="al-notice"><svg class="ic"><use href="#i-info"/></svg><span>Pesan lagi akan membuat pesanan baru. Harga mengikuti daftar layanan yang berlaku saat pemesanan.</span></p>
+{% endblock %}

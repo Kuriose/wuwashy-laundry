@@ -6,7 +6,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--navy); background: #fff; line-height: 1.5; }
-h1, h2, h3 { font-family: 'Afacad Flux', sans-serif; font-weight: 500; margin: 0; line-height: 1.15; letter-spacing: -.01em; }
+h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 500; margin: 0; line-height: 1.15; letter-spacing: -.01em; }
 p, ul { margin: 0; padding: 0; }
 ul { list-style: none; }
 a { color: inherit; }
@@ -21,7 +21,7 @@ button { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 0 0 0; text-decoration: none; }
 .brand-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--lime); color: var(--navy); }
 .brand-icon .ic { width: 24px; height: 24px; stroke-width: 2; }
-.brand-name { font-family: 'Condiment', cursive; font-size: 29px; line-height: 1; }
+.brand-name { font-family: 'Yellowtail', cursive; font-size: 29px; line-height: 1; }
 .outlet { margin: 22px 0 0 0; }
 .outlet strong { display: block; font-size: 13px; font-weight: 600; }
 .outlet small { display: block; margin-top: 2px; font-size: 12px; color: rgba(255,255,255,.62); }
@@ -66,7 +66,7 @@ button { font: inherit; color: inherit; }
 .stat, .card { border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
 .stat { padding: 20px 20px 18px; }
 .stat-label { font-size: 13px; color: var(--ink-2); }
-.stat-value { margin: 4px 0 8px; font-family: 'Afacad Flux', sans-serif; font-size: 38px; font-weight: 400; line-height: 1.1; }
+.stat-value { margin: 4px 0 8px; font-family: 'Outfit', sans-serif; font-size: 38px; font-weight: 400; line-height: 1.1; }
 .stat-hl { font-size: 12.5px; color: var(--blue); }
 .stat-note { margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
 
@@ -96,7 +96,7 @@ button { font: inherit; color: inherit; }
 .donut { position: relative; display: grid; place-items: center; flex: none; width: 150px; height: 150px; border-radius: 50%; }
 .donut::before { content: ''; position: absolute; inset: 11px; border-radius: 50%; background: #fff; }
 .donut p { position: relative; text-align: center; line-height: 1.2; }
-.donut strong { display: block; font-family: 'Afacad Flux', sans-serif; font-size: 25px; font-weight: 400; }
+.donut strong { display: block; font-family: 'Outfit', sans-serif; font-size: 25px; font-weight: 400; }
 .donut span { font-size: 11px; color: var(--ink-2); }
 .dist-legend { flex: 1; display: grid; gap: 11px; min-width: 0; }
 .dist-legend li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
@@ -193,7 +193,7 @@ td.id a:hover { text-decoration: underline; }
 .dp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
 .dp-main, .dp-side { display: grid; gap: 20px; min-width: 0; }
 .dp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 22px; }
-.dp-name { font: 500 20px/1.3 'Afacad Flux', sans-serif; }
+.dp-name { font: 500 20px/1.3 'Outfit', sans-serif; }
 .dp-line { margin-top: 10px; font-size: 14px; }
 .dp-line.sm { font-size: 13px; }
 .dp-strong { font-size: 13px; font-weight: 600; }
@@ -204,7 +204,7 @@ td.id a:hover { text-decoration: underline; }
 .dp-tbl td { padding: 14px 0; border-top: 0; }
 .dp-tbl .num { text-align: right; }
 .dp-total { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; font-weight: 600; }
-.dp-total b { font: 500 30px/1 'Afacad Flux', sans-serif; }
+.dp-total b { font: 500 30px/1 'Outfit', sans-serif; }
 .dp-tl { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 18px; }
 .dp-tl li { position: relative; display: grid; gap: 2px; padding-left: 26px; font-size: 14px; color: var(--ink-2); }
 .dp-tl li i { position: absolute; left: 0; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
@@ -224,8 +224,18 @@ td.id a:hover { text-decoration: underline; }
 @media (max-width: 1100px) { .dp-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .dp-two { grid-template-columns: minmax(0, 1fr); } .dp-head { flex-wrap: wrap; } }
 
-/* ───────────── Overview item + daftar pesanan ───────────── */
-.menu-overview { margin: 20px 0 4px; }
+
+/* ---------- form tagihan (berat timbang & koreksi harga) ---------- */
+.dp-form input { width: 100%; height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; color: var(--navy); }
+.dp-form input:focus { outline: 0; border-color: var(--blue); }
+.dp-form input[type="hidden"] { display: none; }
+.dp-two-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dp-two-inputs label { display: block; margin-bottom: 6px; }
+.dp-err { margin-top: 4px; font-size: 12.5px; color: #c62828; }
+.dp-lock { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #fff7e0; font-size: 13px; color: #8a5a00; }
+@media (max-width: 600px) { .dp-two-inputs { grid-template-columns: 1fr; } }
+
+/* ───────────── Daftar pesanan (pencarian, filter periode, pembagian halaman) ───────────── */
 .link-go { display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--navy);text-decoration:none; }
 .link-go:hover { text-decoration:underline; }
 .link-go .ic { width:14px;height:14px; }
@@ -270,6 +280,7 @@ td.id a:hover { text-decoration: underline; }
   .range-pop { left:0;right:0;width:auto; }
   .table-foot { flex-direction:column;align-items:flex-start; }
 }
+@media (max-width: 600px) { .dp-two-inputs { grid-template-columns: 1fr; } }
 
 /* ── Laporan Tersimpan ─────────────────────────────────────────────────── */
 .lp-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:28px; }

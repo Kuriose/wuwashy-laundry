@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('laundry', '0005_layanan_per_pcs'),
+        ('laundry', '0008_notifikasi_tipe'),
     ]
 
     operations = [

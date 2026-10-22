@@ -83,21 +83,3 @@ def konteks_poin_hadiah(user, tab=''):
         'pesanan_menunggu': menunggu[0] if menunggu else None,
         'riwayat': list(PoinLog.objects.filter(user=user).select_related('booking')[:20]),
     }
-
-
-def tukar_hadiah(user, key):
-    """Tukar poin dengan hadiah. Mengembalikan (hadiah, None) bila berhasil, atau (None, pesan_galat)."""
-    hadiah = next((h for h in HADIAH if h['key'] == key), None)
-    if hadiah is None:
-        return None, 'Hadiah tidak ditemukan.'
-    with transaction.atomic():
-        # kunci baris user supaya dua penukaran serentak tidak sama-sama lolos dari saldo
-        get_user_model()._default_manager.select_for_update().get(pk=user.pk)
-        saldo = saldo_poin(user.pk)
-        if saldo < hadiah['poin']:
-            return None, f"Poinmu belum cukup, kurang {rupiah(hadiah['poin'] - saldo)} poin."
-        PoinLog.objects.create(
-            user_id=user.pk, jumlah=-hadiah['poin'], saldo=saldo - hadiah['poin'],
-            keterangan=f"Tukar: {hadiah['nama']}"[:100],
-        )
-    return hadiah, None

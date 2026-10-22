@@ -1,0 +1,26 @@
+{# Kartu satu pesanan (dipakai Pesanan saya dan hasil pencarian). Butuh variabel: b, whatsapp_admin #}
+<article class="card order" aria-labelledby="o-{{ b.pk }}">
+  <header class="order-head">
+    <h2 id="o-{{ b.pk }}">#{{ b.resi }}</h2>
+    <span class="chip">{{ b.get_status_display }}</span>
+  </header>
+  <p class="order-sub">{{ b.nama_layanan }} &middot; {{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} &middot; {{ b.dibuat|date:"j F Y" }}</p>
+
+  <ol class="steps" aria-label="Tahap pesanan">
+    {% for l in b.langkah %}
+    <li class="{% if l.done %}done{% endif %}{% if l.now %} now{% endif %}"{% if l.now %} aria-current="step"{% endif %}>
+      <span class="dot">{% if l.done and not l.now %}<svg class="ic"><use href="#i-check"/></svg>{% endif %}</span>
+      <strong>{{ l.label }}</strong>
+      {% if forloop.first %}<small>{{ b.dibuat|date:"j M · H.i" }}</small>{% elif l.now %}<small>{{ b.diperbarui|date:"j M · H.i" }} &middot; sedang diproses</small>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <p class="note-box"><svg class="ic"><use href="#i-info"/></svg>Estimasi selesai: {{ b.estimasi_selesai|date:"j F Y · H.i T" }}. Update terakhir {{ b.diperbarui|date:"H.i" }}.</p>
+
+  <div class="order-total"><span>{% if b.status == 'selesai' %}Total tagihan{% else %}Estimasi tagihan{% endif %}</span><b>Rp {{ b.total_fmt }}</b></div>
+  <div class="order-foot">
+    <a class="btn-blue" href="https://wa.me/{{ whatsapp_admin }}?text=Halo%20WuWashy%2C%20saya%20mau%20tanya%20pesanan%20{{ b.resi }}" target="_blank" rel="noopener">Tanya pesanan ini</a>
+    {% if b.poin %}<a class="poin-chip" href="{% url 'poin_hadiah' %}">+{{ b.poin }} poin setelah selesai</a>{% endif %}
+  </div>
+</article>

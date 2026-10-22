@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Beranda{% endblock %} - WuWashy Laundry</title>
   <meta name="robots" content="noindex">
-  {% include 'laundry/_fonts.html' %}
-  <link rel="stylesheet" href="{% static 'laundry/dashboard.css' %}?v=6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Yellowtail&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'laundry/dashboard.css' %}">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -23,11 +25,16 @@
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 1.5M5 4L3 6M19 4l2 2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M8 16L16 8M9 8h7v7"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M8 12h12M4 17h16"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6.5h11V16H3z"/><path d="M14 9.5h3.8L21 12.8V16h-7"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></symbol>
+  <symbol id="i-iron" viewBox="0 0 24 24"><path d="M3.5 18h16.7a1 1 0 0 0 1-1.2C20.5 12.2 17 9 12.5 9H8.5a5 5 0 0 0-5 5v4z"/><path d="M8 13.5h6.5"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11 3.5l1.9 5.6 5.6 1.9-5.6 1.9L11 18.5l-1.9-5.6L3.5 11l5.6-1.9L11 3.5z"/><path d="M19 15v4M17 17h4M5 18v2M4 19h2"/></symbol>
 </defs></svg>
 
 <div class="app">
@@ -50,13 +57,13 @@
       {% block nav %}
       {% with aktif=request.resolver_match.url_name %}
       <a class="nav-item{% if aktif == 'dashboard' %} is-active{% endif %}" href="{% url 'dashboard' %}"{% if aktif == 'dashboard' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-home"/></svg>Beranda</a>
-      <a class="nav-item{% if aktif == 'pesan_laundry' %} is-active{% endif %}" href="{% url 'pesan_laundry' %}"{% if aktif == 'pesan_laundry' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-plus-circle"/></svg>Pesan laundry</a>
+      <a class="nav-item{% if aktif == 'akun_saya' %} is-active{% endif %}" href="{% url 'akun_saya' %}"{% if aktif == 'akun_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-user"/></svg>Akun saya</a>
       <a class="nav-item{% if aktif == 'pesanan_saya' %} is-active{% endif %}" href="{% url 'pesanan_saya' %}"{% if aktif == 'pesanan_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-logo"/></svg>Pesanan saya{% if pesanan_aktif %}<span class="badge">{{ pesanan_aktif }}</span>{% endif %}</a>
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-history"/></svg>Riwayat pesanan</span>
+      <a class="nav-item{% if request.resolver_match.url_name == 'riwayat_pesanan' %} is-active{% endif %}" href="{% url 'riwayat_pesanan' %}"{% if request.resolver_match.url_name == 'riwayat_pesanan' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-history"/></svg>Riwayat pesanan</a>
       <a class="nav-item{% if aktif == 'poin_hadiah' %} is-active{% endif %}" href="{% url 'poin_hadiah' %}"{% if aktif == 'poin_hadiah' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-gift"/></svg>Poin &amp; hadiah</a>
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-pin"/></svg>Alamat saya</span>
-      <a class="nav-item{% if aktif == 'notifikasi' %} is-active{% endif %}" href="{% url 'notifikasi' %}"{% if aktif == 'notifikasi' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</a>
       {% endwith %}
+      <a class="nav-item{% if request.resolver_match.url_name == 'alamat_saya' %} is-active{% endif %}" href="{% url 'alamat_saya' %}"{% if request.resolver_match.url_name == 'alamat_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-pin"/></svg>Alamat saya</a>
+      <a class="nav-item{% if request.resolver_match.url_name == 'notifikasi' %} is-active{% endif %}" href="{% url 'notifikasi' %}"{% if request.resolver_match.url_name == 'notifikasi' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</a>
       <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-search"/></svg>Lacak resi</span>
       {% endblock %}
     </nav>
@@ -68,7 +75,7 @@
         <p>Kami siap bantu cucianmu, setiap hari.</p>
         <a href="https://wa.me/{{ whatsapp_admin }}" target="_blank" rel="noopener">Chat WhatsApp <svg class="ic"><use href="#i-ext"/></svg></a>
       </div>
-      <a class="nav-item{% if request.resolver_match.url_name == 'pengaturan' %} is-active{% endif %}" href="{% url 'pengaturan' %}"><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</a>
+      <a class="nav-item{% if request.resolver_match.url_name == 'pengaturan' %} is-active{% endif %}" href="{% url 'pengaturan' %}"{% if request.resolver_match.url_name == 'pengaturan' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</a>
       <button class="nav-item" type="button" data-open-logout aria-haspopup="dialog"><svg class="ic"><use href="#i-logout"/></svg>Keluar</button>
     </div>
   </aside>
@@ -83,17 +90,16 @@
       </div>
       {% block tools %}
       <div class="tools">
-        <label class="search is-soon" title="Segera hadir">
+        <form class="search" method="get" action="{% url 'cari_pesanan' %}" role="search">
           <svg class="ic"><use href="#i-search"/></svg>
-          <input type="search" placeholder="Cari nomor pesanan..." aria-label="Cari nomor pesanan" disabled>
-        </label>
-        <a class="bell" href="{% url 'notifikasi' %}" title="Notifikasi" aria-label="Notifikasi"><svg class="ic"><use href="#i-bell"/></svg></a>
+          <input type="search" name="q" value="{{ q|default:'' }}" placeholder="Cari nomor pesanan..." aria-label="Cari nomor pesanan" autocomplete="off">
+        </form>
+        <a class="bell" href="{% url 'notifikasi' %}" aria-label="Notifikasi{% if notif_belum %} ({{ notif_belum }} belum dibaca){% endif %}"><svg class="ic"><use href="#i-bell"/></svg>{% if notif_belum %}<span class="bell-dot" aria-hidden="true"></span>{% endif %}</a>
       </div>
       {% endblock %}
     </header>
 
     <div class="content">
-      {% if messages %}<ul class="flash" role="status">{% for m in messages %}<li class="flash-{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
       {% block content %}{% endblock %}
     </div>
   </div>
@@ -136,5 +142,6 @@
   // klik di area gelap (di luar kartu) menutup dialog
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,28 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% block title %}Cari pesanan{% endblock %}
+{% block heading %}Cari pesanan{% endblock %}
+{% block content %}
+<section class="card" aria-labelledby="hasil">
+  <h2 id="hasil">{% if q %}Hasil untuk &ldquo;{{ q }}&rdquo;{% else %}Cari nomor pesanan{% endif %}</h2>
+  <p class="card-sub">{% if q %}{{ hasil|length }} pesanan ditemukan di akunmu.{% else %}Ketik nomor pesanan (contoh: WWSH-12345) di kolom pencarian di atas.{% endif %}</p>
+</section>
+
+<div class="cari-list">
+  {% for b in hasil %}
+  {% include 'laundry/_kartu_pesanan.html' %}
+  {% empty %}
+  {% if q %}
+  <section class="card">
+    <div class="empty" style="margin-top:0">
+      <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-search"/></svg></span>
+      <div>
+        <strong>Pesanan tidak ditemukan</strong>
+        <p>Periksa lagi nomor pesanannya. Pencarian hanya mencakup pesanan di akunmu.</p>
+      </div>
+      <a class="btn-blue" href="{% url 'pesanan_saya' %}">Pesanan saya</a>
+    </div>
+  </section>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}Pesanan {{ b.resi }}{% endblock %}
 {% block crumb %}Detail Pesanan{% endblock %}
 {% block content %}
-<a class="dp-back" href="{% url 'admin_dashboard' %}">&larr; Kembali ke Overview</a>
+<a class="dp-back" href="{% url 'admin_dashboard' %}">&larr; Kembali ke dasbor</a>
 
 {% if messages %}
 <div class="dp-msgs" role="status">
@@ -40,13 +40,52 @@
       <h2 id="dp-rinci">Rincian layanan</h2>
       <table class="dp-tbl">
         <thead><tr><th>Layanan</th><th>Berat &times; tarif</th><th class="num">Subtotal</th></tr></thead>
-        <tbody><tr>
-          <td><strong>{{ b.nama_layanan }}</strong></td>
-          <td>{{ b.berat|floatformat:"-1" }} {{ b.satuan }} &times; Rp {{ b.harga_satuan_fmt }}</td>
-          <td class="num"><strong>Rp {{ b.total_fmt }}</strong></td>
-        </tr></tbody>
+        <tbody>
+          <tr>
+            <td><strong>{{ b.nama_layanan }}</strong></td>
+            <td>{{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} <small class="dp-muted">({% if b.berat_final is not None %}hasil timbang{% else %}estimasi pelanggan{% endif %})</small> &times; Rp {{ b.harga_satuan_fmt }}</td>
+            <td class="num"><strong>Rp {{ b.dasar_fmt }}</strong></td>
+          </tr>
+          {% if b.koreksi_harga %}
+          <tr>
+            <td><strong>Koreksi harga</strong></td>
+            <td><small class="dp-muted">{{ b.catatan_koreksi }}</small></td>
+            <td class="num"><strong>{{ b.koreksi_fmt }}</strong></td>
+          </tr>
+          {% endif %}
+        </tbody>
       </table>
       <div class="dp-total"><span>Total pembayaran</span><b>Rp {{ b.total_fmt }}</b></div>
+    </section>
+
+    <section class="card" aria-labelledby="dp-tag">
+      <h2 id="dp-tag">Tagihan</h2>
+      <p class="card-sub">Isi berat/jumlah hasil timbang dan koreksi harga bila ada. Total dihitung otomatis.</p>
+      {% if tagihan_terkunci %}
+      <p class="dp-lock">Poin pesanan ini sudah diberikan, jadi tagihan dikunci agar buku poin pelanggan tetap sesuai.</p>
+      {% else %}
+      <form method="post" class="dp-form">
+        {% csrf_token %}
+        <input type="hidden" name="aksi" value="tagihan">
+        <div class="dp-two-inputs">
+          <div>
+            <label for="{{ tagihan_form.berat_final.id_for_label }}">{{ tagihan_form.berat_final.label }} ({{ b.satuan }})</label>
+            {{ tagihan_form.berat_final }}
+            {% for e in tagihan_form.berat_final.errors %}<p class="dp-err">{{ e }}</p>{% endfor %}
+          </div>
+          <div>
+            <label for="{{ tagihan_form.koreksi_harga.id_for_label }}">{{ tagihan_form.koreksi_harga.label }}</label>
+            {{ tagihan_form.koreksi_harga }}
+            {% for e in tagihan_form.koreksi_harga.errors %}<p class="dp-err">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+        <label for="{{ tagihan_form.catatan_koreksi.id_for_label }}">{{ tagihan_form.catatan_koreksi.label }}</label>
+        {{ tagihan_form.catatan_koreksi }}
+        {% for e in tagihan_form.catatan_koreksi.errors %}<p class="dp-err">{{ e }}</p>{% endfor %}
+        <p class="dp-hint">Koreksi positif menambah tagihan, negatif memberi potongan. Setelah poin diberikan, tagihan tidak bisa diubah lagi.</p>
+        <button class="btn-lime dp-save" type="submit">Simpan Tagihan</button>
+      </form>
+      {% endif %}
     </section>
 
     <section class="card" aria-labelledby="dp-cat">

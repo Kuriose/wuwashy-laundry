@@ -1,10 +1,85 @@
 {% extends 'laundry/dashboard_base.html' %}
+{% load static %}
 {% block title %}Notifikasi{% endblock %}
 {% block heading %}Notifikasi{% endblock %}
 {% block content %}
-<section class="card kosong-state" aria-labelledby="notif-judul">
-  <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
-  <h2 id="notif-judul">Belum ada notifikasi</h2>
-  <p>Kabar terbaru tentang pesanan dan poinmu akan muncul di sini.</p>
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    <h2 id="sapa">Kabar terbaru untukmu, {{ nama_depan }}.</h2>
+    <p>Status cucian, poin, dan hadiah &mdash; semua pembaruan tersimpan di sini.</p>
+  </div>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
 </section>
+
+{% for m in messages %}
+<p class="note-box {% if m.tags == 'error' %}ak-bad{% else %}ak-ok{% endif %}" role="status"><svg class="ic"><use href="#{% if m.tags == 'error' %}i-info{% else %}i-check{% endif %}"/></svg>{{ m }}</p>
+{% endfor %}
+
+<div class="nt-bar">
+  <nav class="tabs" aria-label="Filter notifikasi">
+    {% for kode, teks in kotak.tab %}
+    <a href="?filter={{ kode }}"{% if kotak.pilihan == kode %} class="is-on" aria-current="page"{% endif %}>{{ teks }}</a>
+    {% endfor %}
+  </nav>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="aksi" value="tandai_semua">
+    <button class="al-btn" type="submit"{% if not kotak.jumlah_belum %} disabled{% endif %}>Tandai semua dibaca</button>
+  </form>
+</div>
+
+<div class="nt-grid">
+  <section class="card al-card" aria-labelledby="terbaru">
+    <h2 id="terbaru">Pembaruan terbaru</h2>
+
+    <div class="nt-list">
+      {% for n in halaman %}
+      <article class="nt-item{% if not n.dibaca %} is-unread{% endif %}">
+        <span class="nt-ic" aria-hidden="true"><svg class="ic"><use href="#{{ n.ikon }}"/></svg></span>
+        <div class="nt-body">
+          <h3>{{ n.judul }}</h3>
+          <p class="nt-meta">{{ n.waktu_tampil }} &middot; {{ n.kategori }} &middot; {% if n.dibaca %}Dibaca{% else %}Belum dibaca{% endif %}</p>
+          <p class="nt-text">{{ n.isi }}</p>
+          {% if n.tautan %}<a class="nt-link" href="{{ n.tautan.1 }}">{{ n.tautan.0 }} &rarr;</a>{% endif %}
+        </div>
+        {% if not n.dibaca %}<span class="nt-dot" aria-hidden="true"></span>{% endif %}
+      </article>
+      {% empty %}
+      <div class="empty">
+        <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
+        <div>
+          {% if kotak.pilihan != 'semua' %}
+          <strong>Tidak ada notifikasi di sini</strong>
+          <p>Coba kategori lain atau <a href="{% url 'notifikasi' %}">tampilkan semua notifikasi</a>.</p>
+          {% else %}
+          <strong>Belum ada notifikasi</strong>
+          <p>Kabar status cucian, poin, dan hadiah akan muncul di sini.</p>
+          {% endif %}
+        </div>
+        <a class="btn-blue" href="{% url 'booking' %}">Pesan sekarang</a>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if halaman.paginator.num_pages > 1 %}
+    <div class="rw-foot">
+      <p>Menampilkan {{ halaman|length }} dari {{ halaman.paginator.count }} notifikasi</p>
+      {% if halaman.has_previous %}<a class="rw-pg" href="?{{ kotak.qs_halaman }}page={{ halaman.previous_page_number }}">&larr; Sebelumnya</a>{% else %}<span class="rw-pg is-off" aria-disabled="true">&larr; Sebelumnya</span>{% endif %}
+      <span class="rw-chip" aria-label="Halaman {{ halaman.number }} dari {{ halaman.paginator.num_pages }}">{{ halaman.number }}</span>
+      {% if halaman.has_next %}<a class="rw-pg" href="?{{ kotak.qs_halaman }}page={{ halaman.next_page_number }}">Berikutnya &rarr;</a>{% else %}<span class="rw-pg is-off" aria-disabled="true">Berikutnya &rarr;</span>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="nt-side">
+    <section class="card al-card" aria-labelledby="terhubung">
+      <h2 id="terhubung">Tetap terhubung</h2>
+      <span class="al-pill">{% if kotak.jumlah_belum %}{{ kotak.jumlah_belum }} notifikasi belum dibaca{% else %}Semua notifikasi sudah dibaca{% endif %}</span>
+      <p class="nt-text nt-muted">Aktifkan WhatsApp dan email untuk menerima kabar pesanan di luar dashboard.</p>
+      <span class="al-btn is-soon" title="Segera hadir" aria-disabled="true">Atur notifikasi</span>
+    </section>
+    <p class="al-notice"><svg class="ic"><use href="#i-info"/></svg><span>Notifikasi pesanan penting selalu tampil di sini, termasuk saat promo dinonaktifkan.</span></p>
+  </div>
+</div>
 {% endblock %}

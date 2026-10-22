@@ -8,21 +8,26 @@
     <h2 id="sapa">Halo, {{ nama_depan }}! Siap tampil fresh?</h2>
     <p>Pantau cucianmu atau jadwalkan penjemputan baru di sini.</p>
   </div>
-  <a class="btn-white" href="{% url 'pesan_laundry' %}"><svg class="ic"><use href="#i-plus"/></svg>Pesan laundry</a>
+  <a class="btn-white" href="{% url 'booking' %}"><svg class="ic"><use href="#i-plus"/></svg>Pesan laundry</a>
   <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
 </section>
 
 <div class="grid">
   <section class="card area-track" aria-labelledby="lacak">
-    <div class="section-head" style="margin-bottom:0"><h2 id="lacak">Lacak cucianmu</h2></div>
+    <div class="section-head" style="margin-bottom:0"><h2 id="lacak">Lacak cucianmu</h2>{% if jumlah_aktif %}<span class="chip">{{ jumlah_aktif }} pesanan aktif</span>{% endif %}</div>
+    {% for b in lacak %}
+    {% include 'laundry/_progres_pesanan.html' %}
+    {% empty %}
     <div class="empty">
       <span class="empty-icon" aria-hidden="true"><svg class="ic"><use href="#i-logo"/></svg></span>
       <div>
         <strong>Belum ada cucian yang diproses</strong>
         <p>Pesan penjemputan dan statusnya akan muncul di sini.</p>
       </div>
-      <a class="btn-blue" href="{% url 'pesan_laundry' %}">Pesan laundry</a>
+      <a class="btn-blue" href="{% url 'booking' %}">Pesan laundry</a>
     </div>
+    {% endfor %}
+    {% if lacak_sisa %}<a class="track-more" href="{% url 'pesanan_saya' %}">Lihat {{ lacak_sisa }} pesanan aktif lainnya &rarr;</a>{% endif %}
   </section>
 
   <aside class="points area-side" aria-labelledby="poin">
@@ -45,8 +50,8 @@
       <div class="section-head"><h2 id="layanan">Pilih layananmu</h2><span>{{ layanan|length }} layanan tersedia</span></div>
       <div class="services">
         {% for s in layanan %}
-        <a class="service" href="{% url 'pesan_laundry' %}?layanan={{ s.key }}">
-          {% if s.img %}<img src="{% static 'laundry/img/' %}{{ s.img }}" alt="">{% else %}<div class="ph-photo" role="img" aria-label="Foto belum tersedia">Photo</div>{% endif %}
+        <a class="service" href="{% url 'booking' %}?layanan={{ s.key }}">
+          <img src="{% static 'laundry/img/' %}{{ s.img }}" alt="">
           <h3>{{ s.nama }}</h3>
           <p class="price">Rp {{ s.harga_fmt }} <small>/{{ s.satuan }}</small></p>
           <p class="eta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>{{ s.estimasi|cut:"Selesai dalam " }}</p>
@@ -71,9 +76,14 @@
       <span class="address-icon" aria-hidden="true"><svg class="ic"><use href="#i-pin"/></svg></span>
       <div>
         <strong id="alamat">Alamat penjemputan</strong>
-        <p>Belum ada alamat tersimpan. Tulis alamat lengkapmu saat memesan agar kurir langsung meluncur.</p>
+        {% if alamat_utama %}
+        <p>{{ alamat_utama.label }} &middot; {{ alamat_utama.baris_alamat }}</p>
+        {% else %}
+        <p>Belum ada alamat tersimpan. Tambahkan alamat agar kurir langsung meluncur saat kamu booking.</p>
+        {% endif %}
         <p class="tag">Dalam radius 3 km &middot; Gratis antar-jemput</p>
       </div>
+      <a class="addr-link" href="{% url 'alamat_saya' %}">{% if alamat_utama %}Ubah{% else %}Tambah alamat{% endif %}</a>
     </section>
   </div>
 </div>

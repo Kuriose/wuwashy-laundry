@@ -11,9 +11,13 @@ Aplikasi web layanan laundry berbasis **Django**. Pelanggan bisa memesan penjemp
 - **Akun pelanggan (USER)**: daftar di `/signup/`, masuk dengan email dan password. Dashboard menampilkan ringkasan, daftar pesanan, serta poin dan hadiah.
 - **Panel admin (ADMIN)**: dashboard statistik pesanan, daftar pesanan terbaru, dan halaman detail untuk mengubah status pesanan.
 - **Sistem poin**: setiap Rp1.000 total pesanan = 1 poin. Poin masuk otomatis saat status pesanan menjadi `selesai` dan hanya dicatat satu kali per pesanan.
+- **Akun saya** (`/akun/`): pelanggan mengubah nama, nama panggilan, WhatsApp, dan tanggal lahir. Email hanya bisa dibaca karena dipakai untuk login.
+- **Alamat saya** (`/alamat/`): pelanggan menyimpan beberapa alamat (label, penerima, WhatsApp, kecamatan, kota, kode pos, catatan kurir). Satu alamat menjadi alamat utama, yang otomatis mengisi form booking dan tampil di kartu alamat Beranda, Pesanan saya, dan Akun saya. Daftar kota dan kecamatan ada di `WILAYAH` (`laundry/services.py`).
+- **Riwayat pesanan** (`/riwayat/`): ringkasan (pesanan selesai, total transaksi, poin didapat), filter (nomor/layanan, periode, layanan), pembagian halaman, tombol Pesan lagi. Logikanya ada di `laundry/riwayat.py`.
+- **Pencarian pesanan**: kolom cari di header dashboard pelanggan (`/cari/`) menemukan pesanan milik akun itu, semua status.
+- **Tagihan di panel admin**: admin mengisi berat hasil timbang dan koreksi harga di halaman detail pesanan. Tagihan dikunci setelah poin diberikan.
+- **Notifikasi** (`/notifikasi/`): setiap pesanan baru, perubahan status, poin masuk, dan hadiah yang sudah bisa ditukar otomatis membuat `Notifikasi` untuk pemilik akun. Halamannya punya filter (Semua, Belum dibaca, Pesanan, Poin & hadiah), pembagian halaman, tombol Tandai semua dibaca, dan titik biru di ikon lonceng header selama ada yang belum dibaca. Pembuatnya ada di `laundry/notifikasi.py` (tiap kelas menentukan ikon dan tautannya sendiri), logika halamannya di `laundry/kotak_notifikasi.py`.
 - **Penautan pesanan ke akun**: akun yang sedang login diprioritaskan, lalu nomor WhatsApp yang cocok tepat satu akun, dan terakhir dicatat sebagai tamu.
-- **Laporan tersimpan**: menu *Laporan Tersimpan* di panel admin menampilkan daftar laporan ringkasan operasional, pendapatan, rekap pesanan (bulanan), dan kinerja layanan (mingguan) yang dihitung dari data pesanan. Tombol unduh masih placeholder.
-- **Anggota tim**: menu *Anggota Tim* di panel admin menampilkan daftar kasir dan kurir outlet beserta form untuk menambah anggota baru dan mengedit data anggota (nama, email, telepon, peran). Saat ini hanya pencatatan data; anggota belum punya akun login sendiri.
 
 ## Teknologi
 
@@ -84,10 +88,10 @@ Perintah ini membuat file `db.sqlite3` di folder proyek.
 ```bash
 python manage.py seed_users      # membuat 1 akun pelanggan dan 1 akun admin untuk uji coba
 python manage.py seed_pesanan    # opsional: 60 pesanan contoh agar dashboard admin terisi
-python manage.py seed_tim        # opsional: 6 anggota tim contoh (3 kasir, 3 kurir)
+python manage.py seed_demo_pesanan   # opsional: 5 pesanan contoh (satu per tahap) untuk akun uji; lihat bar progres di Beranda
 ```
 
-Kedua perintah ini hanya untuk pengembangan. `seed_users` aman dijalankan berulang kali, sedangkan `seed_pesanan` menolak berjalan jika sudah ada pesanan, kecuali ditambah opsi `--force`.
+Perintah seed ini hanya untuk pengembangan. `seed_demo_pesanan` aman dijalankan berulang kali (contoh lama diganti), mendukung `--status dijemput` untuk satu pesanan saja, dan `--hapus` untuk membersihkannya. `seed_users` aman dijalankan berulang kali, sedangkan `seed_pesanan` menolak berjalan jika sudah ada pesanan, kecuali ditambah opsi `--force`.
 
 ### 6. Jalankan server
 
@@ -120,13 +124,15 @@ Untuk mengembalikan password akun uji ke nilai bawaan: `python manage.py seed_us
 | `/signup/` | Daftar akun pelanggan | Publik |
 | `/login/` | Masuk (pelanggan dan admin) | Publik |
 | `/dashboard/` | Beranda pelanggan | USER |
+| `/akun/` | Akun saya (nama, WhatsApp, tanggal lahir) | USER |
+| `/alamat/` | Alamat saya (banyak alamat: tambah, ubah, jadikan utama, hapus) | USER |
 | `/pesanan/` | Pesanan saya | USER |
+| `/cari/?q=` | Hasil pencarian nomor pesanan | USER |
+| `/riwayat/` | Riwayat pesanan (selesai/dibatalkan, filter, halaman) | USER |
+| `/notifikasi/` | Notifikasi pesanan, poin, dan hadiah (filter, tandai dibaca) | USER |
 | `/poin/` | Poin dan hadiah | USER |
 | `/panel/` | Dashboard admin | ADMIN |
 | `/panel/pesanan/<id>/` | Detail pesanan dan ubah status | ADMIN |
-| `/panel/laporan/` | Laporan tersimpan (daftar laporan per bulan dan minggu) | ADMIN |
-| `/panel/anggota/` | Anggota tim (kasir dan kurir) dan form tambah anggota | ADMIN |
-| `/panel/anggota/<id>/edit/` | Edit data anggota tim | ADMIN |
 | `/admin/` | Django Admin bawaan (kelola data mentah) | Superuser |
 
 Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan ke `/login/`. Akun USER yang membuka `/panel/` mendapat galat 403.
@@ -139,11 +145,13 @@ Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan 
 ├── requirements.txt
 ├── config/                  # pengaturan proyek (settings, urls, wsgi/asgi)
 └── laundry/                 # aplikasi utama
-    ├── models.py            # Booking, Profile, PoinLog, AnggotaTim
+    ├── models.py            # Booking, Profile, Alamat, PoinLog, Notifikasi
+    ├── notifikasi.py        # pembuat notifikasi (kelas abstrak + subkelas per status, poin, hadiah)
+    ├── kotak_notifikasi.py  # data halaman Notifikasi (filter, hitungan, pembagian halaman)
     ├── views.py, urls.py    # halaman dan routing
-    ├── forms.py             # form booking, login, dan signup
+    ├── forms.py             # form booking, login, signup, akun saya, dan tagihan
     ├── poin.py, services.py # logika poin, katalog layanan, dan hadiah
-    ├── panel.py, tim.py     # data ringkasan untuk panel admin dan halaman Anggota Tim
+    ├── panel.py             # data ringkasan untuk panel admin
     ├── signals.py           # pemberian poin otomatis saat pesanan selesai
     ├── templates/laundry/   # template HTML
     ├── static/laundry/      # CSS dan gambar
@@ -154,7 +162,7 @@ Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan 
 
 ## Konfigurasi yang bisa disesuaikan
 
-Semuanya ada di `config/settings.py`:
+Dibaca dari environment variable atau file `.env` (contoh: `.env.example`), dengan nilai bawaan untuk pengembangan lokal. Daftar yang paling penting ada di `config/settings.py`:
 
 | Pengaturan | Fungsi |
 |------------|--------|
@@ -169,7 +177,7 @@ Daftar layanan dan harga ada di `SERVICES`, sedangkan katalog hadiah di `HADIAH`
 python manage.py test
 ```
 
-> **Catatan:** pada pengecekan terakhir, 98 dari 101 tes lulus. Tiga tes belum lulus (dua di `PoinTests` dan satu di `SignUpTests`). Aplikasi tetap berjalan normal; ini hanya perlu ditindaklanjuti tim.
+> Semua tes lulus (208 tes). Tes fitur akun, pencarian, tagihan, notifikasi (data), dan konfigurasi produksi ada di `laundry/tests_akun.py`; tes halaman Notifikasi di `laundry/tests_notifikasi.py`.
 
 ## Kolaborasi tim dan mencegah merge conflict
 
@@ -289,6 +297,34 @@ Langkah penanganannya:
 | Ingin mengulang database dari awal | Hentikan server, hapus file `db.sqlite3`, lalu ulangi langkah 4 dan 5. |
 | Tampilan tanpa gambar/CSS | Pastikan server dijalankan dengan `runserver` dari folder yang berisi `manage.py`. |
 
-## Catatan keamanan
+## Deploy ke server
 
-Konfigurasi saat ini ditujukan untuk **pengembangan lokal**: `DEBUG = True`, `SECRET_KEY` tertanam di kode, dan `ALLOWED_HOSTS` kosong. Sebelum dipublikasikan ke server sungguhan, ubah pengaturan tersebut dan pindahkan rahasia ke variabel lingkungan.
+Tanpa file `.env`, aplikasi berjalan dalam mode pengembangan (`DEBUG` aktif). Untuk server:
+
+1. Pasang dependensi dan salin pengaturan:
+
+   ```bash
+   pip install -r requirements.txt
+   cp .env.example .env        # lalu isi DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS, dan DJANGO_CSRF_TRUSTED_ORIGINS
+   ```
+
+2. Siapkan database dan file static:
+
+   ```bash
+   python manage.py migrate
+   python manage.py collectstatic --noinput
+   python manage.py createsuperuser
+   ```
+
+3. Jalankan dengan gunicorn (file `Procfile` sudah tersedia untuk Railway, Render, atau Heroku):
+
+   ```bash
+   gunicorn config.wsgi
+   ```
+
+Catatan:
+
+- Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
+- File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
+- SQLite cukup untuk uji coba. Untuk produksi isi `DATABASE_URL` (mis. PostgreSQL) dan pasang `psycopg2-binary`.
+- Jangan pakai akun dari `seed_users` di server produksi.

@@ -1,0 +1,22 @@
+{# Ringkas satu pesanan aktif: nomor, layanan, bar tahap, estimasi. Dipakai kartu "Lacak cucianmu" di Beranda. Butuh variabel: b #}
+<div class="track-order">
+  <div class="track-top">
+    <div>
+      <strong>#{{ b.resi }}</strong>
+      <small>{{ b.nama_layanan }} &middot; {{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} &middot; {{ b.get_status_display }}</small>
+    </div>
+    <a class="track-link" href="{% url 'pesanan_saya' %}">Detail pesanan &rarr;</a>
+  </div>
+
+  <ol class="steps" aria-label="Tahap pesanan {{ b.resi }}">
+    {% for l in b.langkah %}
+    <li class="{% if l.done %}done{% endif %}{% if l.now %} now{% endif %}"{% if l.now %} aria-current="step"{% endif %}>
+      <span class="dot">{% if l.done and not l.now %}<svg class="ic"><use href="#i-check"/></svg>{% endif %}</span>
+      <strong>{{ l.label }}</strong>
+      {% if forloop.first %}<small>{{ b.dibuat|date:"j M · H.i" }}</small>{% elif l.now %}<small>{{ b.diperbarui|date:"j M · H.i" }} &middot; sedang diproses</small>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <p class="note-box"><svg class="ic"><use href="#i-info"/></svg>Estimasi selesai: {{ b.estimasi_selesai|date:"j F Y · H.i T" }}. Update terakhir {{ b.diperbarui|date:"H.i" }}.</p>
+</div>

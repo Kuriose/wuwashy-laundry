@@ -1,0 +1,107 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% load static %}
+{% block title %}Akun saya{% endblock %}
+{% block heading %}Akun saya{% endblock %}
+{% block content %}
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    <h2 id="sapa">Profilmu, lebih personal.</h2>
+    <p>Pastikan data akun selalu terbaru agar cucianmu sampai dengan tepat.</p>
+  </div>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
+</section>
+
+{% for m in messages %}
+<p class="note-box ak-ok" role="status"><svg class="ic"><use href="#i-check"/></svg>{{ m }}</p>
+{% endfor %}
+
+<div class="ak-grid">
+  <section class="card ak-card" aria-labelledby="pribadi">
+    <h2 id="pribadi">Informasi pribadi</h2>
+
+    <div class="ak-profile">
+      <span class="ak-ava" aria-hidden="true">{{ inisial }}</span>
+      <div class="ak-who">
+        <strong>{{ nama }}</strong>
+        <small>WuMember &middot; Bergabung sejak {{ user.date_joined|date:"F Y" }}</small>
+      </div>
+      <span class="ak-photo is-soon" title="Segera hadir" aria-disabled="true">Ubah foto</span>
+    </div>
+
+    <form method="post" class="ak-form" novalidate>
+      {% csrf_token %}
+      <div class="ak-row">
+        <div class="ak-field{% if form.nama_lengkap.errors %} has-error{% endif %}">
+          <label for="{{ form.nama_lengkap.id_for_label }}">{{ form.nama_lengkap.label }}</label>
+          {{ form.nama_lengkap }}
+          {% for e in form.nama_lengkap.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="ak-field{% if form.nama_panggilan.errors %} has-error{% endif %}">
+          <label for="{{ form.nama_panggilan.id_for_label }}">{{ form.nama_panggilan.label }}</label>
+          {{ form.nama_panggilan }}
+          {% for e in form.nama_panggilan.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="ak-field">
+        <label for="email-akun">Alamat email</label>
+        <input id="email-akun" type="email" value="{{ user.email }}" readonly aria-describedby="email-hint">
+        <p class="ak-hint" id="email-hint">Dipakai untuk masuk, nota, dan pembaruan pesanan. Email tidak bisa diubah di sini.</p>
+      </div>
+
+      <div class="ak-row">
+        <div class="ak-field{% if form.whatsapp.errors %} has-error{% endif %}">
+          <label for="{{ form.whatsapp.id_for_label }}">{{ form.whatsapp.label }}</label>
+          {{ form.whatsapp }}
+          {% for e in form.whatsapp.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="ak-field{% if form.tanggal_lahir.errors %} has-error{% endif %}">
+          <label for="{{ form.tanggal_lahir.id_for_label }}">{{ form.tanggal_lahir.label }}</label>
+          {{ form.tanggal_lahir }}
+          {% for e in form.tanggal_lahir.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <hr class="ak-divider">
+      <p class="ak-hint ak-line">Perubahan data tidak akan mengubah pesanan yang sedang berjalan.</p>
+      <div class="ak-actions">
+        <button class="ak-save" type="submit">Simpan perubahan</button>
+        <a class="ak-cancel" href="{% url 'akun_saya' %}">Batal</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="ak-side">
+    <section class="ak-points" aria-labelledby="poin">
+      <h2 id="poin">Poin loyalitas</h2>
+      <div class="ak-points-row">
+        <strong>{{ poin }}</strong>
+        <span class="ak-badge">WuMember</span>
+      </div>
+      <p class="ak-points-label">Menuju voucher Rp 10.000 &middot; {{ poin_target }} poin</p>
+      <div class="ak-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ poin_persen }}" aria-label="Progres poin menuju voucher"><i style="width:{{ poin_persen }}%"></i></div>
+      <p class="ak-points-label">{{ poin_persen }}% tercapai &middot; {{ poin_sisa }} poin lagi untuk hadiah ini.</p>
+    </section>
+
+    <section class="ak-addr" aria-labelledby="alamat-card">
+      <h2 id="alamat-card">Alamat antar-jemput</h2>
+      {% if alamat_utama %}
+      <p class="ak-addr-name">{{ alamat_utama.label }} &middot; {{ alamat_utama.nama_penerima }}</p>
+      <p class="ak-addr-line">{{ alamat_utama.baris_alamat }}</p>
+      <p class="ak-addr-meta">{{ alamat_utama.whatsapp_tampil }}{% if alamat_utama.catatan_kurir %} &middot; {{ alamat_utama.catatan_kurir }}{% endif %}</p>
+      <span class="ak-pill">Dalam radius 3 km &middot; Gratis antar-jemput</span>
+      {% else %}
+      <p class="ak-addr-line">Belum ada alamat tersimpan. Tambahkan alamat agar kurir langsung meluncur saat kamu booking.</p>
+      {% endif %}
+      <a class="ak-link" href="{% url 'alamat_saya' %}">{% if alamat_utama %}Ubah di Alamat saya{% else %}Tambah alamat{% endif %} &rarr;</a>
+    </section>
+
+    <section class="ak-secure" aria-labelledby="aman">
+      <h2 id="aman">Akunmu aman</h2>
+      <p>Atur kata sandi dan pilihan notifikasi di halaman pengaturan.</p>
+      <span class="ak-ghost is-soon" title="Segera hadir" aria-disabled="true">Buka pengaturan</span>
+    </section>
+  </aside>
+</div>
+{% endblock %}

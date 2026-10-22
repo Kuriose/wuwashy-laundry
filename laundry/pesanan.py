@@ -16,3 +16,18 @@ def konteks_pesanan_saya(user, tab=''):
         'estimasi_terdekat': min((b.estimasi_selesai for b in aktif), default=None),
         'total_aktif': rupiah(sum(b.total for b in aktif)),
     }
+
+
+def konteks_lacak_beranda(user, batas=3):
+    """Pesanan aktif terbaru untuk kartu "Lacak cucianmu" di Beranda (maksimal `batas`; sisanya hanya dihitung).
+
+    "Aktif" = semua tahap sebelum selesai/dibatalkan, jadi bar progres sudah tampil sejak pesanan dibuat
+    (status 'menunggu'), bukan baru setelah dijemput.
+    """
+    aktif = pesanan_aktif(user).order_by('-dibuat', '-id')
+    jumlah = aktif.count()
+    return {
+        'lacak': list(aktif[:batas]),
+        'jumlah_aktif': jumlah,
+        'lacak_sisa': max(0, jumlah - batas),
+    }

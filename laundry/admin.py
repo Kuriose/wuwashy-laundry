@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import AnggotaTim, Booking, PoinLog, Profile
+from .models import Alamat, AnggotaTim, Booking, Notifikasi, PoinLog, Profile
 
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('resi', 'nama', 'whatsapp', 'layanan', 'berat', 'status', 'user', 'asal', 'dibuat')
+    list_display = ('resi', 'nama', 'whatsapp', 'layanan', 'berat', 'berat_final', 'koreksi_harga', 'status', 'user', 'asal', 'dibuat')
     list_editable = ('status',)
     list_filter = ('status', 'layanan', 'asal', 'dibuat')
     search_fields = ('resi', 'nama', 'whatsapp', 'alamat', 'user__email')
@@ -25,6 +25,20 @@ class PoinLogAdmin(admin.ModelAdmin):
     list_filter = ('dibuat',)
     search_fields = ('user__email', 'booking__resi')
     readonly_fields = ('dibuat',)
+
+
+@admin.register(Notifikasi)
+class NotifikasiAdmin(admin.ModelAdmin):
+    list_display = ('user', 'judul', 'booking', 'dibaca', 'dibuat')
+    list_filter = ('dibaca', 'dibuat')
+    search_fields = ('user__email', 'judul', 'booking__resi')
+
+
+@admin.register(Alamat)
+class AlamatAdmin(admin.ModelAdmin):
+    list_display = ('user', 'label', 'nama_penerima', 'kecamatan', 'kota', 'utama', 'dibuat')
+    list_filter = ('utama', 'kota')
+    search_fields = ('user__email', 'nama_penerima', 'alamat_lengkap')
 
 
 @admin.register(AnggotaTim)

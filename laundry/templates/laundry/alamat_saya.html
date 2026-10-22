@@ -1,0 +1,156 @@
+{% extends 'laundry/dashboard_base.html' %}
+{% load static %}
+{% block title %}Alamat saya{% endblock %}
+{% block heading %}Alamat saya{% endblock %}
+{% block content %}
+<section class="banner" aria-labelledby="sapa">
+  <div class="banner-copy">
+    <p class="banner-eyebrow">Cucian beres, hari jadi bebas.</p>
+    <h2 id="sapa">Kami jemput, kamu tinggal santai.</h2>
+    <p>Simpan alamat favorit agar antar-jemput cucian selalu praktis.</p>
+  </div>
+  <img class="banner-img" src="{% static 'laundry/img/hero.jpg' %}" alt="">
+</section>
+
+{% for m in messages %}
+<p class="note-box {% if m.tags == 'error' %}ak-bad{% else %}ak-ok{% endif %}" role="status"><svg class="ic"><use href="#{% if m.tags == 'error' %}i-info{% else %}i-check{% endif %}"/></svg>{{ m }}</p>
+{% endfor %}
+
+<div class="al-grid">
+  <div class="al-left">
+    <section class="card al-card" aria-labelledby="tersimpan">
+      <h2 id="tersimpan">Alamat tersimpan ({{ jumlah_alamat }})</h2>
+
+      {% for a in daftar_alamat %}
+      <article class="al-item">
+        {% if a.utama %}
+        <span class="al-badge">{{ a.label }} &middot; Alamat utama</span>
+        <p class="al-name"><strong>{{ a.nama_penerima }} &middot; {{ a.whatsapp_tampil }}</strong></p>
+        {% else %}
+        <h3 class="al-title">{{ a.label }}</h3>
+        <p class="al-name">{{ a.nama_penerima }} &middot; {{ a.whatsapp_tampil }}</p>
+        {% endif %}
+        <p class="al-line">{{ a.baris_alamat }}</p>
+        {% if a.catatan_kurir %}<p class="al-note">{{ a.catatan_kurir }}</p>{% endif %}
+        {% if a.utama %}
+        <span class="al-pill">Dalam radius 3 km &middot; Gratis antar-jemput</span>
+        <div class="al-actions">
+          <a class="al-btn" href="?ubah={{ a.pk }}#form-alamat">Ubah alamat</a>
+          <span class="al-used">&#10003; Dipakai sebagai alamat utama</span>
+        </div>
+        {% else %}
+        <div class="al-actions">
+          <form method="post">{% csrf_token %}<input type="hidden" name="aksi" value="utama"><input type="hidden" name="alamat_id" value="{{ a.pk }}"><button class="al-btn" type="submit">Jadikan utama</button></form>
+          <a class="al-btn" href="?ubah={{ a.pk }}#form-alamat">Ubah</a>
+          <form method="post" onsubmit="return confirm('Hapus alamat {{ a.label|escapejs }}?')">{% csrf_token %}<input type="hidden" name="aksi" value="hapus"><input type="hidden" name="alamat_id" value="{{ a.pk }}"><button class="al-del" type="submit">Hapus</button></form>
+        </div>
+        {% endif %}
+      </article>
+      {% empty %}
+      <p class="al-empty">Belum ada alamat tersimpan. Tambahkan alamat pertamamu di formulir di samping, dan alamat itu otomatis menjadi alamat utama.</p>
+      {% endfor %}
+    </section>
+
+    <p class="al-notice"><svg class="ic"><use href="#i-info"/></svg><span>Alamat utama terpilih otomatis untuk pesanan baru. Pesanan aktif tetap memakai alamat saat dipesan.</span></p>
+  </div>
+
+  <section class="card al-card al-form" id="form-alamat" aria-labelledby="judul-form">
+    <h2 id="judul-form">{% if sedang_ubah %}Ubah alamat{% else %}Tambah alamat baru{% endif %}</h2>
+    <p class="ak-hint">Isi detail lokasi agar kurir mudah menemukanmu.</p>
+
+    <form method="post" class="ak-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="aksi" value="simpan">
+      {% if sedang_ubah %}<input type="hidden" name="alamat_id" value="{{ sedang_ubah.pk }}">{% endif %}
+      {% if form.non_field_errors %}<p class="ak-error">{{ form.non_field_errors.0 }}</p>{% endif %}
+
+      <div class="ak-field{% if form.label.errors %} has-error{% endif %}">
+        <label for="{{ form.label.id_for_label }}">{{ form.label.label }}</label>
+        {{ form.label }}
+        {% for e in form.label.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="ak-row">
+        <div class="ak-field{% if form.nama_penerima.errors %} has-error{% endif %}">
+          <label for="{{ form.nama_penerima.id_for_label }}">{{ form.nama_penerima.label }}</label>
+          {{ form.nama_penerima }}
+          {% for e in form.nama_penerima.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="ak-field{% if form.whatsapp.errors %} has-error{% endif %}">
+          <label for="{{ form.whatsapp.id_for_label }}">{{ form.whatsapp.label }}</label>
+          {{ form.whatsapp }}
+          {% for e in form.whatsapp.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="ak-field{% if form.alamat_lengkap.errors %} has-error{% endif %}">
+        <label for="{{ form.alamat_lengkap.id_for_label }}">{{ form.alamat_lengkap.label }}</label>
+        {{ form.alamat_lengkap }}
+        {% for e in form.alamat_lengkap.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="ak-row">
+        <div class="ak-field{% if form.kecamatan.errors %} has-error{% endif %}">
+          <label for="{{ form.kecamatan.id_for_label }}">{{ form.kecamatan.label }}</label>
+          {{ form.kecamatan }}
+          {% for e in form.kecamatan.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="ak-field{% if form.kota.errors %} has-error{% endif %}">
+          <label for="{{ form.kota.id_for_label }}">{{ form.kota.label }}</label>
+          {{ form.kota }}
+          {% for e in form.kota.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="ak-row">
+        <div class="ak-field{% if form.kode_pos.errors %} has-error{% endif %}">
+          <label for="{{ form.kode_pos.id_for_label }}">{{ form.kode_pos.label }}</label>
+          {{ form.kode_pos }}
+          {% for e in form.kode_pos.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="ak-field">
+          <label for="provinsi">Provinsi</label>
+          <input id="provinsi" type="text" value="{{ provinsi }}" readonly>
+        </div>
+      </div>
+
+      <div class="ak-field{% if form.catatan_kurir.errors %} has-error{% endif %}">
+        <label for="{{ form.catatan_kurir.id_for_label }}">{{ form.catatan_kurir.label }}</label>
+        {{ form.catatan_kurir }}
+        {% for e in form.catatan_kurir.errors %}<p class="ak-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <label class="al-check" for="{{ form.utama.id_for_label }}">{{ form.utama }} {{ form.utama.label }}</label>
+
+      <p class="al-notice"><svg class="ic"><use href="#i-info"/></svg><span>Gratis antar-jemput dalam radius 3 km. Biaya di luar radius akan dikonfirmasi sebelum penjemputan.</span></p>
+
+      <div class="ak-actions">
+        <button class="ak-save" type="submit">{% if sedang_ubah %}Simpan perubahan{% else %}Simpan alamat{% endif %}</button>
+        <a class="ak-cancel" href="{% url 'alamat_saya' %}">Batal</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ wilayah|json_script:"wilayah-data" }}
+<script>
+  // Pilihan kecamatan mengikuti kota yang dipilih.
+  (function () {
+    var data = JSON.parse(document.getElementById('wilayah-data').textContent);
+    var kota = document.getElementById('{{ form.kota.id_for_label }}');
+    var kec = document.getElementById('{{ form.kecamatan.id_for_label }}');
+    if (!kota || !kec) return;
+    kota.addEventListener('change', function () {
+      kec.innerHTML = '';
+      [''].concat(data[kota.value] || []).forEach(function (nama) {
+        var o = document.createElement('option');
+        o.value = nama;
+        o.textContent = nama || 'Pilih kecamatan';
+        kec.appendChild(o);
+      });
+    });
+  })();
+</script>
+{% endblock %}

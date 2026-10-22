@@ -3,7 +3,6 @@ from datetime import date, datetime, time, timedelta
 from urllib.parse import urlencode
 import calendar
 
-
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDate
@@ -184,7 +183,7 @@ def _kandidat_wa(q):
         return set()
     kandidat = {digit}
     if digit.startswith('0'):   kandidat.add('62' + digit[1:])
-    elif digit.startswith('62'):candidat.add('0' + digit[2:])
+    elif digit.startswith('62'): kandidat.add('0' + digit[2:])
     elif digit.startswith('8'): kandidat.update({'0'+digit, '62'+digit})
     norm = normalisasi_wa(q)
     if norm: kandidat.update({norm, '0'+norm[2:]})

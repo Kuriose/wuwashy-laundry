@@ -1,1 +1,4 @@
 Django>=5.0
+gunicorn>=22.0
+whitenoise>=6.9
+dj-database-url>=2.1

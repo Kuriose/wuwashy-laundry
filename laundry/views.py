@@ -7,24 +7,25 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
 
 from .decorators import admin_required
-from .forms import EMAIL_SUDAH_ADA, AnggotaTimForm, BookingForm, EmailLoginForm, SignUpForm
+from .forms import (EMAIL_SUDAH_ADA, AlamatForm, AnggotaTimForm, BookingForm, EmailLoginForm,
+                    NotifikasiForm, ProfilAkunForm, SignUpForm, TagihanForm, UbahKataSandiForm)
 from . import panel, tim
-from .pesanan import konteks_pesanan_saya
-from .models import AnggotaTim, Booking, PoinLog, Profile
+from .pesanan import konteks_lacak_beranda, konteks_pesanan_saya
+from .kotak_notifikasi import KotakNotifikasi
+from .models import Alamat, AnggotaTim, Booking, Notifikasi, PoinLog, Profile, TagihanTerkunci
 from .poin import konteks_poin_hadiah, pesanan_aktif, saldo_poin, tautkan_booking
-from .poin import tukar_hadiah as proses_tukar
-from .services import SERVICES, rupiah
+from .riwayat import RiwayatPesanan
+from .services import MAKS_ALAMAT, PROVINSI, SERVICES, WILAYAH, rupiah
 
 KEUNGGULAN = [
-    ('fitur-harga.jpg', 'Harga Transparan', 'Setiap hitungan pakaian disaksikan bersama dan tercatat detail di database sistem online.'),
-    (None, 'Garansi Bersih', 'Kurang puas dengan cucian kami? Kami cuci ulang gratis tanpa biaya tambahan.'),
+    ('fitur-harga.jpg', 'Harga Transparan', 'Setiap timbangan disaksikan bersama dan tercatat detail di database sistem online.'),
+    ('fitur-garansi.jpg', 'Garansi Bersih', 'Kurang puas dengan cucian kami? Kami cuci ulang gratis tanpa biaya tambahan.'),
     ('fitur-poin.jpg', 'Poin Royalti', 'Setiap cuci dapat poin! Kumpulkan transaksinya, tukarkan diskon spesial, dan nikmati keuntungan eksklusif.'),
     ('fitur-wangi.jpg', 'Pewangi Premium', 'Parfum khusus berlisensi aman yang tercium harum segar hingga 14 hari pengerjaan.'),
-    (None, 'Real-Time Tracking', 'Pantau pergerakan antaran cucian secara langsung di peta secara real-time hingga sampai di depan pintu.'),
-    (None, 'Gratis Penjemputan', 'Tanpa minimum pesanan untuk radius 3km dari outlet terdekat kami.'),
+    ('fitur-tracking.jpg', 'Real-Time Tracking', 'Pantau pergerakan antaran cucian secara langsung di peta secara real-time hingga sampai di depan pintu.'),
+    ('fitur-antar.jpg', 'Gratis Penjemputan', 'Tanpa minimum pesanan untuk radius 3km dari outlet terdekat kami.'),
 ]
 
 TESTIMONI = [
@@ -57,41 +58,36 @@ def services(request):
     return _ke_bagian('services')
 
 
-def _simpan_booking_dan_buka_wa(request, form):
-    """Simpan pesanan (tertaut ke akun bila login) lalu arahkan ke WhatsApp admin."""
-    b = form.save(commit=False)
-    tautkan_booking(b, request.user)
-    b.save()
-    pesan = (
-        'Halo WuWashy Laundry! Saya ingin booking jemput cucian.\n\n'
-        f'No. Resi: {b.resi}\n'
-        f'Nama: {b.nama}\n'
-        f'WhatsApp: {b.whatsapp}\n'
-        f'Layanan: {b.get_layanan_display()}\n'
-        f'Jumlah pakaian: {int(b.berat)} pcs\n'
-        f'Alamat: {b.alamat}\n'
-        f'Catatan: {b.catatan or "-"}'
-    )
-    return redirect(f'https://wa.me/{settings.WHATSAPP_ADMIN}?text={quote(pesan)}')
-
-
-def _form_booking_awal(request):
-    awal = {}
-    if request.GET.get('layanan'):
-        awal['layanan'] = request.GET['layanan']
-    if request.user.is_authenticated:  # pelanggan login: data dirinya terisi otomatis
-        awal['nama'] = request.user.get_full_name().strip()
-        awal['whatsapp'] = Profile.untuk(request.user).whatsapp
-    return BookingForm(initial=awal or None)
-
-
 def booking(request):
     if request.method == 'POST':
         form = BookingForm(request.POST)
         if form.is_valid():
-            return _simpan_booking_dan_buka_wa(request, form)
+            b = form.save(commit=False)
+            tautkan_booking(b, request.user)
+            b.save()
+            pesan = (
+                'Halo WuWashy Laundry! Saya ingin booking jemput cucian.\n\n'
+                f'No. Resi: {b.resi}\n'
+                f'Nama: {b.nama}\n'
+                f'WhatsApp: {b.whatsapp}\n'
+                f'Layanan: {b.get_layanan_display()}\n'
+                f'Estimasi berat: {b.berat} kg\n'
+                f'Alamat: {b.alamat}\n'
+                f'Catatan: {b.catatan or "-"}'
+            )
+            return redirect(f'https://wa.me/{settings.WHATSAPP_ADMIN}?text={quote(pesan)}')
     else:
-        form = _form_booking_awal(request)
+        awal = {}
+        if request.GET.get('layanan'):
+            awal['layanan'] = request.GET['layanan']
+        if request.user.is_authenticated:  # pelanggan login: data dirinya terisi otomatis
+            awal['nama'] = request.user.get_full_name().strip()
+            profil = Profile.untuk(request.user)
+            awal['whatsapp'] = profil.whatsapp
+            utama = Alamat.utama_untuk(request.user)  # alamat utama dari halaman Alamat saya
+            if utama:
+                awal['alamat'] = utama.baris_alamat
+        form = BookingForm(initial=awal or None)
     return render(request, 'laundry/booking.html', {'form': form})
 
 
@@ -136,9 +132,12 @@ def _konteks_dasar(user, role):
     return {
         'peran': role,
         'pesanan_aktif': pesanan_aktif(user).count() if role != Profile.Role.ADMIN else 0,  # lencana sidebar
+        'notif_belum': Notifikasi.jumlah_belum_dibaca(user) if role != Profile.Role.ADMIN else 0,  # titik di lonceng
         'nama': nama,
         'nama_depan': nama_depan,
         'inisial': ''.join(kata[0] for kata in nama.split()[:2]).upper(),
+        'profil': Profile.untuk(user),
+        'alamat_utama': Alamat.utama_untuk(user),  # dipakai kartu alamat di beberapa halaman
     }
 
 
@@ -156,6 +155,7 @@ def dashboard(request):
         'poin': poin,
         'poin_target': rupiah(POIN_TARGET),
         'poin_persen': min(100, poin * 100 // POIN_TARGET),
+        **konteks_lacak_beranda(request.user),  # kartu "Lacak cucianmu": pesanan aktif + bar progres
         'whatsapp_admin': settings.WHATSAPP_ADMIN,
     })
 
@@ -186,62 +186,6 @@ def poin_hadiah(request):
     })
 
 
-@login_required
-def pesan_laundry(request):
-    """Form pesan laundry di dalam dashboard pelanggan, jadi tidak perlu pindah ke halaman website."""
-    role = Profile.untuk(request.user).role
-    if role == Profile.Role.ADMIN:
-        return redirect('admin_dashboard')
-    if request.method == 'POST':
-        form = BookingForm(request.POST)
-        if form.is_valid():
-            return _simpan_booking_dan_buka_wa(request, form)
-    else:
-        form = _form_booking_awal(request)
-    return render(request, 'laundry/pesan.html', {
-        **_konteks_dasar(request.user, role), 'form': form, 'whatsapp_admin': settings.WHATSAPP_ADMIN,
-    })
-
-
-@login_required
-@require_POST
-def tukar_hadiah(request, key):
-    """Tukar poin dengan hadiah; admin menindaklanjuti lewat WhatsApp."""
-    if Profile.untuk(request.user).role == Profile.Role.ADMIN:
-        return redirect('admin_dashboard')
-    hadiah, galat = proses_tukar(request.user, key)
-    if galat:
-        messages.error(request, galat)
-    else:
-        messages.success(request, f"Berhasil menukar {hadiah['nama']}. Admin akan menghubungimu lewat WhatsApp untuk mengirim hadiahnya.")
-    return redirect('poin_hadiah')
-
-
-@login_required
-def notifikasi(request):
-    """Daftar notifikasi pelanggan (sementara masih kosong)."""
-    role = Profile.untuk(request.user).role
-    if role == Profile.Role.ADMIN:
-        return redirect('admin_dashboard')
-    return render(request, 'laundry/notifikasi.html', {
-        **_konteks_dasar(request.user, role), 'whatsapp_admin': settings.WHATSAPP_ADMIN,
-    })
-
-
-@login_required
-def pengaturan(request):
-    """Ringkasan akun pelanggan (sementara hanya baca)."""
-    role = Profile.untuk(request.user).role
-    if role == Profile.Role.ADMIN:
-        return redirect('admin_dashboard')
-    return render(request, 'laundry/pengaturan.html', {
-        **_konteks_dasar(request.user, role),
-        'email': request.user.email,
-        'whatsapp': Profile.untuk(request.user).whatsapp,
-        'whatsapp_admin': settings.WHATSAPP_ADMIN,
-    })
-
-
 @admin_required
 def admin_dashboard(request):
     """Dasbor admin: ringkasan pesanan bulan berjalan (data dari model Booking)."""
@@ -266,8 +210,32 @@ def _konteks_panel(request):
     }
 
 
+def _konteks_detail(request, b, tagihan_form):
+    """Konteks halaman detail pesanan admin (dipakai saat tampil biasa dan saat form tagihan salah isi)."""
+    log_poin = PoinLog.objects.filter(booking=b, jumlah__gt=0).first()
+    return {
+        **_konteks_panel(request),
+        'b': b,
+        'status_kunci': panel.kelompok_status(b.status)[0],
+        'pilihan_status': Booking.STATUS,
+        'log_poin': log_poin,
+        'saldo_pelanggan': saldo_poin(b.user_id) if b.user_id else None,
+        'tagihan_form': tagihan_form,
+        'tagihan_terkunci': b.tagihan_terkunci,
+    }
+
+
+def _form_tagihan_awal(b):
+    return TagihanForm(initial={
+        'berat_final': b.berat_efektif,
+        'koreksi_harga': b.koreksi_harga,
+        'catatan_koreksi': b.catatan_koreksi,
+    })
+
+
 @admin_required
 def admin_pesanan(request):
+    """Daftar seluruh pesanan: pencarian, filter periode, dan pembagian halaman."""
     return render(request, 'laundry/admin_pesanan.html', {
         **_konteks_panel(request),
         **panel.daftar_pesanan(request.GET, 'admin_pesanan'),
@@ -318,8 +286,29 @@ def admin_dibatalkan(request):
 
 @admin_required
 def admin_pesanan_detail(request, pk):
-    """Detail satu pesanan + form ubah status. Memakai .save() agar signal pemberi poin ikut jalan."""
+    """Detail satu pesanan + form ubah status + form tagihan (berat timbang & koreksi harga).
+
+    Keduanya memakai .save() lewat model agar signal pemberi poin dan notifikasi ikut jalan.
+    """
     b = get_object_or_404(Booking.objects.select_related('user'), pk=pk)
+
+    if request.method == 'POST' and request.POST.get('aksi') == 'tagihan':
+        form = TagihanForm(request.POST)
+        if form.is_valid():
+            sudah_dapat_poin = PoinLog.objects.filter(booking=b, jumlah__gt=0).exists()
+            try:
+                b.terapkan_tagihan(form.cleaned_data['berat_final'], form.cleaned_data['koreksi_harga'],
+                                   form.cleaned_data['catatan_koreksi'].strip())
+            except TagihanTerkunci as e:
+                messages.error(request, str(e))
+            else:
+                pesan = f'Tagihan {b.resi} diperbarui: Rp {b.total_fmt}.'
+                log = PoinLog.objects.filter(booking=b, jumlah__gt=0).first()
+                if log and not sudah_dapat_poin:
+                    pesan += f' +{log.jumlah} poin masuk ke {b.user.email}.'
+                messages.success(request, pesan)
+            return redirect('admin_pesanan_detail', pk=b.pk)
+        return render(request, 'laundry/admin_pesanan_detail.html', _konteks_detail(request, b, form))
 
     if request.method == 'POST':
         baru = request.POST.get('status', '')
@@ -345,15 +334,7 @@ def admin_pesanan_detail(request, pk):
             messages.success(request, pesan)
         return redirect('admin_pesanan_detail', pk=b.pk)
 
-    log_poin = PoinLog.objects.filter(booking=b, jumlah__gt=0).first()
-    return render(request, 'laundry/admin_pesanan_detail.html', {
-        **_konteks_panel(request),
-        'b': b,
-        'status_kunci': panel.kelompok_status(b.status)[0],
-        'pilihan_status': Booking.STATUS,
-        'log_poin': log_poin,
-        'saldo_pelanggan': saldo_poin(b.user_id) if b.user_id else None,
-    })
+    return render(request, 'laundry/admin_pesanan_detail.html', _konteks_detail(request, b, _form_tagihan_awal(b)))
 
 
 @admin_required
@@ -405,3 +386,183 @@ def admin_anggota(request):
 def admin_anggota_edit(request, pk):
     """Edit data anggota tim (nama, email, telepon, peran) memakai form yang sama dengan tambah anggota."""
     return _halaman_anggota(request, get_object_or_404(AnggotaTim, pk=pk))
+
+
+@login_required
+def akun_saya(request):
+    """Halaman "Akun saya": lihat dan ubah data pribadi, kontak, dan alamat antar-jemput."""
+    profil = Profile.untuk(request.user)
+    if profil.is_admin:
+        return redirect('admin_dashboard')
+
+    form = ProfilAkunForm(request.POST if request.method == 'POST' else None, user=request.user)
+    if request.method == 'POST' and form.is_valid():
+        form.simpan()
+        messages.success(request, 'Perubahan tersimpan.')
+        return redirect('akun_saya')
+
+    poin = saldo_poin(request.user.pk)
+    return render(request, 'laundry/akun_saya.html', {
+        **_konteks_dasar(request.user, profil.role),
+        'form': form,
+        'poin': poin,
+        'poin_persen': min(100, poin * 100 // POIN_TARGET),
+        'poin_sisa': max(0, POIN_TARGET - poin),
+        'poin_target': rupiah(POIN_TARGET),
+        'whatsapp_admin': settings.WHATSAPP_ADMIN,
+    })
+
+
+@login_required
+def cari_pesanan(request):
+    """Pencarian nomor pesanan di header dashboard (hanya pesanan milik akun yang login, semua status)."""
+    role = Profile.untuk(request.user).role
+    if role == Profile.Role.ADMIN:
+        return redirect('admin_dashboard')
+    q = request.GET.get('q', '').strip().lstrip('#').strip()
+    hasil = []
+    if q:
+        hasil = list(Booking.objects.filter(user=request.user, resi__icontains=q).order_by('-dibuat', '-id')[:20])
+    return render(request, 'laundry/cari_pesanan.html', {
+        **_konteks_dasar(request.user, role),
+        'q': q,
+        'hasil': hasil,
+        'whatsapp_admin': settings.WHATSAPP_ADMIN,
+    })
+
+
+def _ambil_alamat(queryset, mentah):
+    """Alamat milik akun dengan id `mentah` (teks dari form/URL); None bila kosong, bukan angka, atau bukan miliknya."""
+    try:
+        return queryset.filter(pk=int(mentah)).first()
+    except (TypeError, ValueError):
+        return None
+
+
+@login_required
+def alamat_saya(request):
+    """Halaman "Alamat saya": daftar alamat tersimpan + form tambah/ubah. Hanya menyentuh alamat milik akun sendiri."""
+    profil = Profile.untuk(request.user)
+    if profil.is_admin:
+        return redirect('admin_dashboard')
+    milik = Alamat.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        aksi = request.POST.get('aksi', 'simpan')
+        id_mentah = request.POST.get('alamat_id', '')
+        alamat = _ambil_alamat(milik, id_mentah)
+
+        if aksi in ('utama', 'hapus') or id_mentah:
+            if alamat is None:
+                messages.error(request, 'Alamat tidak ditemukan.')
+                return redirect('alamat_saya')
+            if aksi == 'utama':
+                alamat.jadikan_utama()
+                messages.success(request, f'"{alamat.label}" sekarang menjadi alamat utama.')
+                return redirect('alamat_saya')
+            if aksi == 'hapus':
+                label = alamat.label
+                alamat.hapus_dan_pilih_pengganti()
+                messages.success(request, f'Alamat "{label}" dihapus.')
+                return redirect('alamat_saya')
+
+        form = AlamatForm(request.POST, user=request.user, instance=alamat)
+        if form.is_valid():
+            form.simpan()
+            messages.success(request, 'Alamat diperbarui.' if alamat else 'Alamat baru tersimpan.')
+            return redirect('alamat_saya')
+        sedang_ubah = alamat
+    else:
+        sedang_ubah = _ambil_alamat(milik, request.GET.get('ubah'))
+        form = AlamatForm(user=request.user, instance=sedang_ubah)
+
+    daftar = list(milik)
+    return render(request, 'laundry/alamat_saya.html', {
+        **_konteks_dasar(request.user, profil.role),
+        'form': form,
+        'sedang_ubah': sedang_ubah,
+        'daftar_alamat': daftar,
+        'jumlah_alamat': len(daftar),
+        'maks_alamat': MAKS_ALAMAT,
+        'wilayah': WILAYAH,
+        'provinsi': PROVINSI,
+        'whatsapp_admin': settings.WHATSAPP_ADMIN,
+    })
+
+
+@login_required
+def riwayat_pesanan(request):
+    """Halaman "Riwayat pesanan": pesanan selesai/dibatalkan + ringkasan, filter, dan pembagian halaman."""
+    role = Profile.untuk(request.user).role
+    if role == Profile.Role.ADMIN:
+        return redirect('admin_dashboard')
+    riwayat = RiwayatPesanan(request.user, request.GET)
+    return render(request, 'laundry/riwayat_pesanan.html', {
+        **_konteks_dasar(request.user, role),
+        'riwayat': riwayat,
+        'ringkasan': riwayat.ringkasan(),
+        'halaman': riwayat.halaman(request.GET.get('page')),
+    })
+
+
+@login_required
+def pengaturan(request):
+    """Halaman \"Pengaturan\": ganti kata sandi dan preferensi notifikasi."""
+    role = Profile.untuk(request.user).role
+    if role == Profile.Role.ADMIN:
+        return redirect('admin_dashboard')
+
+    aksi = request.POST.get('aksi') if request.method == 'POST' else None
+
+    # Inisialisasi kedua form; hanya form yang disubmit yang diberi data POST
+    form_sandi = UbahKataSandiForm(
+        request.POST if aksi == 'ubah_sandi' else None,
+        user=request.user,
+    )
+    form_notif = NotifikasiForm(
+        request.POST if aksi == 'simpan_notif' else None,
+        user=request.user,
+    )
+
+    if aksi == 'ubah_sandi' and form_sandi.is_valid():
+        form_sandi.simpan()
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
+        messages.success(request, 'Kata sandi berhasil diubah.')
+        return redirect('pengaturan')
+
+    if aksi == 'simpan_notif' and form_notif.is_valid():
+        form_notif.simpan()
+        messages.success(request, 'Preferensi notifikasi diperbarui.')
+        return redirect('pengaturan')
+
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    ip = x_forwarded.split(',')[0].strip() if x_forwarded else request.META.get('REMOTE_ADDR', '-')
+    sesi_aktif = [{'perangkat': 'Sesi ini', 'ip': ip, 'waktu': request.user.last_login, 'aktif': True}]
+
+    return render(request, 'laundry/pengaturan.html', {
+        **_konteks_dasar(request.user, role),
+        'form_sandi': form_sandi,
+        'form_notif': form_notif,
+        'sesi_aktif': sesi_aktif,
+        'whatsapp_admin': settings.WHATSAPP_ADMIN,
+    })
+
+@login_required
+def notifikasi(request):
+    """Halaman "Notifikasi": kabar pesanan, poin, dan hadiah milik pelanggan + filter dan tandai semua dibaca."""
+    role = Profile.untuk(request.user).role
+    if role == Profile.Role.ADMIN:
+        return redirect('admin_dashboard')
+    kotak = KotakNotifikasi(request.user, request.GET)
+    if request.method == 'POST' and request.POST.get('aksi') == 'tandai_semua':
+        jumlah = kotak.tandai_semua_dibaca()
+        messages.success(request, f'{jumlah} notifikasi ditandai sudah dibaca.' if jumlah
+                         else 'Semua notifikasi sudah dibaca.')
+        return redirect(request.get_full_path())  # kembali ke halaman yang sama, filter tetap
+    return render(request, 'laundry/notifikasi.html', {
+        **_konteks_dasar(request.user, role),
+        'kotak': kotak,
+        'halaman': kotak.halaman(request.GET.get('page')),
+        'whatsapp_admin': settings.WHATSAPP_ADMIN,
+    })

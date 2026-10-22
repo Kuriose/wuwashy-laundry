@@ -1,14 +1,256 @@
-{% extends 'laundry/dashboard_base.html' %}
+{% extends "laundry/dashboard_base.html" %}
+{% load static %}
+
 {% block title %}Pengaturan{% endblock %}
 {% block heading %}Pengaturan{% endblock %}
+
 {% block content %}
-<section class="card pesan" aria-labelledby="akun-judul">
-  <h2 id="akun-judul">Akun</h2>
-  <dl class="akun">
-    <div><dt>Nama</dt><dd>{{ nama }}</dd></div>
-    <div><dt>Email</dt><dd>{{ email }}</dd></div>
-    <div><dt>Nomor WhatsApp</dt><dd>{{ whatsapp|default:"-" }}</dd></div>
-  </dl>
-  <p class="pesan-sub">Pengaturan akun lainnya akan segera hadir.</p>
-</section>
+<div class="pg-grid">
+
+  {# ── Kolom kiri ── #}
+  <div class="pg-main">
+
+    {# ── Keamanan: Ganti Kata Sandi ── #}
+    <div class="card pg-card">
+      <h2>Keamanan Akun</h2>
+      <p class="pg-sub">Perbarui kata sandi untuk menjaga keamanan akun kamu.</p>
+
+      {% if messages %}
+        {% for msg in messages %}
+          {% if 'kata sandi' in msg.message|lower %}
+          <div class="note-box {% if msg.tags == 'success' %}ak-ok{% else %}ak-bad{% endif %}" role="alert">
+            <svg class="ic"><use href="#i-{% if msg.tags == 'success' %}check{% else %}info{% endif %}"/></svg>
+            {{ msg }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="aksi" value="ubah_sandi">
+        <div class="ak-form">
+
+          <div class="ak-field{% if form_sandi.kata_sandi_lama.errors %} has-error{% endif %}">
+            <label for="{{ form_sandi.kata_sandi_lama.id_for_label }}">{{ form_sandi.kata_sandi_lama.label }}</label>
+            {{ form_sandi.kata_sandi_lama }}
+            {% for err in form_sandi.kata_sandi_lama.errors %}<p class="ak-error">{{ err }}</p>{% endfor %}
+          </div>
+
+          <div class="ak-row">
+            <div class="ak-field{% if form_sandi.kata_sandi_baru.errors %} has-error{% endif %}">
+              <label for="{{ form_sandi.kata_sandi_baru.id_for_label }}">{{ form_sandi.kata_sandi_baru.label }}</label>
+              {{ form_sandi.kata_sandi_baru }}
+              {% for err in form_sandi.kata_sandi_baru.errors %}<p class="ak-error">{{ err }}</p>{% endfor %}
+            </div>
+            <div class="ak-field{% if form_sandi.konfirmasi_sandi.errors %} has-error{% endif %}">
+              <label for="{{ form_sandi.konfirmasi_sandi.id_for_label }}">{{ form_sandi.konfirmasi_sandi.label }}</label>
+              {{ form_sandi.konfirmasi_sandi }}
+              {% for err in form_sandi.konfirmasi_sandi.errors %}<p class="ak-error">{{ err }}</p>{% endfor %}
+            </div>
+          </div>
+
+          <div class="pg-notice">
+            <svg class="ic"><use href="#i-info"/></svg>
+            <span>Kata sandi minimal 8 karakter, tidak boleh terlalu umum, dan tidak boleh hanya angka.</span>
+          </div>
+
+          <div class="ak-actions">
+            <button type="submit" class="ak-save">Simpan kata sandi</button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    {# ── Perangkat Aktif ── #}
+    <div class="card pg-card">
+      <h2>Perangkat Aktif</h2>
+      <p class="pg-sub">Daftar sesi yang sedang aktif di akun kamu.</p>
+
+      <div class="pg-device-list">
+        {% for sesi in sesi_aktif %}
+        <div class="pg-device-item">
+          <div class="pg-device-ic">
+            <svg class="ic"><use href="#i-user"/></svg>
+          </div>
+          <div class="pg-device-info">
+            <strong>{{ sesi.perangkat }}</strong>
+            <span>IP: {{ sesi.ip }}</span>
+            {% if sesi.waktu %}
+            <small>Login terakhir: {{ sesi.waktu|date:"j F Y, H:i" }}</small>
+            {% endif %}
+          </div>
+          {% if sesi.aktif %}
+          <span class="ak-badge pg-badge-aktif">Aktif sekarang</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="pg-empty">Tidak ada sesi aktif.</p>
+        {% endfor %}
+      </div>
+
+      <div class="pg-notice">
+        <svg class="ic"><use href="#i-info"/></svg>
+        <span>Jika kamu melihat sesi yang tidak kamu kenali, segera ganti kata sandi.</span>
+      </div>
+    </div>
+
+    {# ── Bahasa & Wilayah ── #}
+    <div class="card pg-card">
+      <h2>Bahasa &amp; Wilayah</h2>
+      <p class="pg-sub">Setelan tampilan bahasa dan zona waktu aplikasi.</p>
+      <div class="pg-lang-row">
+        <div class="pg-lang-item">
+          <span class="pg-lang-label">Bahasa</span>
+          <strong class="pg-lang-val">Bahasa Indonesia</strong>
+        </div>
+        <hr class="ak-divider">
+        <div class="pg-lang-item">
+          <span class="pg-lang-label">Zona waktu</span>
+          <strong class="pg-lang-val">WIB (UTC+7) — Samarinda</strong>
+        </div>
+        <hr class="ak-divider">
+        <div class="pg-lang-item">
+          <span class="pg-lang-label">Format tanggal</span>
+          <strong class="pg-lang-val">DD/MM/YYYY</strong>
+        </div>
+      </div>
+      <div class="pg-notice">
+        <svg class="ic"><use href="#i-info"/></svg>
+        <span>Setelan bahasa dan wilayah mengikuti pengaturan outlet WuWashy Samarinda.</span>
+      </div>
+    </div>
+
+  </div>{# /pg-main #}
+
+  {# ── Kolom kanan ── #}
+  <div class="pg-side">
+
+    {# ── Preferensi Notifikasi ── #}
+    <div class="card pg-card">
+      <h2>Preferensi Notifikasi</h2>
+      <p class="pg-sub">Pilih jenis notifikasi yang ingin kamu terima.</p>
+
+      {% if messages %}
+        {% for msg in messages %}
+          {% if 'notifikasi' in msg.message|lower %}
+          <div class="note-box {% if msg.tags == 'success' %}ak-ok{% else %}ak-bad{% endif %}" role="alert">
+            <svg class="ic"><use href="#i-{% if msg.tags == 'success' %}check{% else %}info{% endif %}"/></svg>
+            {{ msg }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" id="form-notif" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="aksi" value="simpan_notif">
+
+        <div class="pg-toggle-list">
+
+          <div class="pg-toggle-item">
+            <div class="pg-toggle-info">
+              <strong>Update status pesanan</strong>
+              <span>Dapat notifikasi saat status cucianmu berubah</span>
+            </div>
+            <label class="pg-toggle" aria-label="Update status pesanan">
+              <input type="checkbox" name="notif_status_pesanan" id="id_notif_status_pesanan"
+                     {% if form_notif.notif_status_pesanan.value %}checked{% endif %}
+                     onchange="this.form.submit()">
+              <span class="pg-toggle-track"><span class="pg-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <hr class="ak-divider">
+
+          <div class="pg-toggle-item">
+            <div class="pg-toggle-info">
+              <strong>Notifikasi WhatsApp</strong>
+              <span>Kirim pemberitahuan ke nomor WhatsApp</span>
+            </div>
+            <label class="pg-toggle" aria-label="Notifikasi WhatsApp">
+              <input type="checkbox" name="notif_whatsapp" id="id_notif_whatsapp"
+                     {% if form_notif.notif_whatsapp.value %}checked{% endif %}
+                     onchange="this.form.submit()">
+              <span class="pg-toggle-track"><span class="pg-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <hr class="ak-divider">
+
+          <div class="pg-toggle-item">
+            <div class="pg-toggle-info">
+              <strong>Notifikasi Email</strong>
+              <span>Kirim pemberitahuan ke alamat email</span>
+            </div>
+            <label class="pg-toggle" aria-label="Notifikasi Email">
+              <input type="checkbox" name="notif_email" id="id_notif_email"
+                     {% if form_notif.notif_email.value %}checked{% endif %}
+                     onchange="this.form.submit()">
+              <span class="pg-toggle-track"><span class="pg-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <hr class="ak-divider">
+
+          <div class="pg-toggle-item">
+            <div class="pg-toggle-info">
+              <strong>Info poin &amp; hadiah</strong>
+              <span>Dapat kabar saat poin masuk atau hadiah tersedia</span>
+            </div>
+            <label class="pg-toggle" aria-label="Info poin dan hadiah">
+              <input type="checkbox" name="notif_poin" id="id_notif_poin"
+                     {% if form_notif.notif_poin.value %}checked{% endif %}
+                     onchange="this.form.submit()">
+              <span class="pg-toggle-track"><span class="pg-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <hr class="ak-divider">
+
+          <div class="pg-toggle-item">
+            <div class="pg-toggle-info">
+              <strong>Promo &amp; penawaran</strong>
+              <span>Kabar diskon dan penawaran spesial WuWashy</span>
+            </div>
+            <label class="pg-toggle" aria-label="Promo dan penawaran">
+              <input type="checkbox" name="notif_promo" id="id_notif_promo"
+                     {% if form_notif.notif_promo.value %}checked{% endif %}
+                     onchange="this.form.submit()">
+              <span class="pg-toggle-track"><span class="pg-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+        </div>
+
+        {# Tombol simpan eksplisit jika JS dinonaktifkan #}
+        <noscript>
+          <div class="ak-actions" style="margin-top:18px">
+            <button type="submit" class="ak-save">Simpan preferensi</button>
+          </div>
+        </noscript>
+
+      </form>
+    </div>
+
+    {# ── Akun & Sesi ── #}
+    <div class="card pg-card">
+      <h2>Akun &amp; Sesi</h2>
+      <p class="pg-sub">Kelola akses dan keamanan akun kamu.</p>
+      <div class="ak-actions" style="flex-direction:column; align-items:stretch">
+        <a href="{% url 'akun_saya' %}" class="pg-action-btn">
+          <svg class="ic"><use href="#i-user"/></svg>
+          Edit profil
+        </a>
+        <button type="button" class="pg-action-btn pg-action-danger" data-open-logout>
+          <svg class="ic"><use href="#i-logout"/></svg>
+          Keluar dari akun
+        </button>
+      </div>
+    </div>
+
+  </div>{# /pg-side #}
+
+</div>{# /pg-grid #}
 {% endblock %}
