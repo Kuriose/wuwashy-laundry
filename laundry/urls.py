@@ -23,5 +23,8 @@ urlpatterns = [
     path('panel/pesanan/selesai/', views.admin_selesai, name='admin_selesai'),
     path('panel/pesanan/dibatalkan/', views.admin_dibatalkan, name='admin_dibatalkan'),
     path('panel/pesanan/<int:pk>/', views.admin_pesanan_detail, name='admin_pesanan_detail'),
+    path('panel/laporan/', views.admin_laporan, name='admin_laporan'),
+    path('panel/anggota/', views.admin_anggota, name='admin_anggota'),
+    path('panel/anggota/<int:pk>/edit/', views.admin_anggota_edit, name='admin_anggota_edit'),
     path('logout/', LogoutView.as_view(), name='logout'),
 ]

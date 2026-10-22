@@ -1,6 +1,7 @@
 """Data ringkasan untuk dashboard admin (view tetap tipis, logika hitung di sini)."""
 from datetime import date, datetime, time, timedelta
 from urllib.parse import urlencode
+import calendar
 
 
 from django.core.paginator import Paginator
@@ -262,4 +263,228 @@ def daftar_pesanan(params, url_name='admin_pesanan', sekarang=None):
         'sekarang': sekarang,
         'masuk_hari_ini': rupiah(Booking.objects.filter(
             dibuat__gte=timezone.make_aware(datetime.combine(hari_ini, time.min), zona)).count()),
+    }
+
+
+# ─────────────────────────────────────── LAPORAN TERSIMPAN ───────────────────
+
+NAMA_BULAN_ID = {
+    1: 'Januari', 2: 'Februari', 3: 'Maret', 4: 'April',
+    5: 'Mei', 6: 'Juni', 7: 'Juli', 8: 'Agustus',
+    9: 'September', 10: 'Oktober', 11: 'November', 12: 'Desember',
+}
+NAMA_BULAN_SINGKAT = {
+    1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr',
+    5: 'Mei', 6: 'Jun', 7: 'Jul', 8: 'Agt',
+    9: 'Sep', 10: 'Okt', 11: 'Nov', 12: 'Des',
+}
+
+
+def _fmt_tanggal(dt):
+    """datetime → '11 Okt 2026 · 14.00'"""
+    return f"{dt.day} {NAMA_BULAN_SINGKAT[dt.month]} {dt.year} · {dt.hour:02d}.{dt.minute:02d}"
+
+
+def _fmt_periode_bulan(tahun, bulan, hari_akhir=None):
+    """Kembalikan string '1–31 Agustus 2026' (atau sampai hari_akhir bila bulan berjalan)."""
+    hari_maks = hari_akhir or calendar.monthrange(tahun, bulan)[1]
+    return f"1–{hari_maks} {NAMA_BULAN_ID[bulan]} {tahun}"
+
+
+def _fmt_periode_minggu(dari, sampai):
+    """date, date → '28 Sep – 4 Okt 2026'"""
+    if dari.month == sampai.month:
+        return f"{dari.day}–{sampai.day} {NAMA_BULAN_SINGKAT[sampai.month]} {sampai.year}"
+    return (
+        f"{dari.day} {NAMA_BULAN_SINGKAT[dari.month]} – "
+        f"{sampai.day} {NAMA_BULAN_SINGKAT[sampai.month]} {sampai.year}"
+    )
+
+
+def laporan_tersimpan(sekarang=None):
+    """Data untuk halaman Laporan Tersimpan.
+
+    Mengembalikan:
+      - stat: dict dengan jumlah laporan, periode_terbaru, total_pesanan_periode
+      - daftar: list laporan (urut terbaru → terlama)
+    """
+    sekarang = timezone.localtime(sekarang or timezone.now())
+    hari_ini = sekarang.date()
+    zona = timezone.get_current_timezone()
+
+    semua = Booking.objects.all()
+    total_semua = semua.count()
+
+    # ── Bangun daftar laporan berdasarkan data yang tersedia ──────────────────
+    # Cari bulan-bulan yang punya data pesanan
+    bulan_ada = (
+        semua
+        .order_by()
+        .values_list('dibuat__year', 'dibuat__month')
+        .distinct()
+        .order_by('-dibuat__year', '-dibuat__month')
+    )
+    bulan_unik = list(dict.fromkeys((y, m) for y, m in bulan_ada))[:12]
+
+    daftar = []
+    for tahun, bulan in bulan_unik:
+        bulan_awal = timezone.make_aware(datetime(tahun, bulan, 1, 0, 0, 0), zona)
+        if bulan == 12:
+            bulan_akhir = timezone.make_aware(datetime(tahun + 1, 1, 1, 0, 0, 0), zona)
+        else:
+            bulan_akhir = timezone.make_aware(datetime(tahun, bulan + 1, 1, 0, 0, 0), zona)
+
+        n = semua.filter(dibuat__gte=bulan_awal, dibuat__lt=bulan_akhir).count()
+        if not n:
+            continue
+
+        # Apakah ini bulan berjalan?
+        is_berjalan = (tahun == hari_ini.year and bulan == hari_ini.month)
+
+        if is_berjalan:
+            hari_akhir = hari_ini.day
+            # Laporan "Ringkasan operasional" bulan berjalan dibuat "hari ini pukul sekarang"
+            dibuat_ringkasan = sekarang
+        else:
+            hari_akhir = calendar.monthrange(tahun, bulan)[1]
+            # Laporan bulan lalu dibuat tanggal 1 bulan berikutnya pukul 08.00
+            if bulan == 12:
+                tgl_buat = datetime(tahun + 1, 1, 1, 8, 0)
+            else:
+                tgl_buat = datetime(tahun, bulan + 1, 1, 8, 0)
+            dibuat_ringkasan = timezone.make_aware(tgl_buat, zona)
+
+        nama_bln = NAMA_BULAN_ID[bulan]
+        periode_str = _fmt_periode_bulan(tahun, bulan, hari_akhir if is_berjalan else None)
+
+        # Laporan Ringkasan Operasional
+        daftar.append({
+            'nama': f'Ringkasan operasional {nama_bln}',
+            'sub': f'{rupiah(n)} pesanan · Dokumen PDF',
+            'periode': periode_str,
+            'dibuat': _fmt_tanggal(timezone.localtime(dibuat_ringkasan)),
+            'dibuat_sort': dibuat_ringkasan,
+        })
+
+        # Laporan Pendapatan (hanya bulan selesai)
+        if not is_berjalan:
+            # total pendapatan = sum berat × harga
+            from .services import LAYANAN
+            pesanan_bln = semua.filter(dibuat__gte=bulan_awal, dibuat__lt=bulan_akhir)
+            total_rp = sum(
+                int(b.berat * LAYANAN.get(b.layanan, {}).get('harga', 0))
+                for b in pesanan_bln.only('berat', 'layanan')
+            )
+            dibuat_pendapatan = timezone.make_aware(
+                datetime(tahun, bulan + 1 if bulan < 12 else 1,
+                         1, 8, 0) if bulan < 12
+                else datetime(tahun + 1, 1, 1, 8, 0), zona
+            )
+            daftar.append({
+                'nama': f'Pendapatan {nama_bln}',
+                'sub': f'Rp {rupiah(total_rp)} · Dokumen PDF',
+                'periode': periode_str,
+                'dibuat': _fmt_tanggal(timezone.localtime(dibuat_pendapatan)),
+                'dibuat_sort': dibuat_pendapatan,
+            })
+
+        # Laporan Rekap Pesanan (hanya bulan selesai)
+        if not is_berjalan:
+            dibuat_rekap = timezone.make_aware(
+                datetime(tahun, bulan + 1 if bulan < 12 else 1, 1, 8, 0) if bulan < 12
+                else datetime(tahun + 1, 1, 1, 8, 0), zona
+            )
+            daftar.append({
+                'nama': f'Rekap pesanan {nama_bln}',
+                'sub': f'{rupiah(n)} pesanan · Dokumen PDF',
+                'periode': periode_str,
+                'dibuat': _fmt_tanggal(timezone.localtime(dibuat_rekap)),
+                'dibuat_sort': dibuat_rekap,
+            })
+
+    # Laporan mingguan: minggu-minggu 4 bulan ke belakang
+    minggu_sudah = set()
+    for delta_hari in range(7, 5 * 7 + 1, 7):
+        senin = hari_ini - timedelta(days=hari_ini.weekday()) - timedelta(weeks=delta_hari // 7 - 1)
+        minggu_ke = senin.isocalendar()[1]
+        if minggu_ke in minggu_sudah:
+            continue
+        minggu_sudah.add(minggu_ke)
+        minggu_akhir = senin + timedelta(days=6)
+        if minggu_akhir > hari_ini:
+            minggu_akhir = hari_ini
+
+        awal_mg = timezone.make_aware(datetime.combine(senin, time.min), zona)
+        akhir_mg = timezone.make_aware(
+            datetime.combine(minggu_akhir + timedelta(days=1), time.min), zona
+        )
+        n_mg = semua.filter(dibuat__gte=awal_mg, dibuat__lt=akhir_mg).count()
+        if not n_mg:
+            continue
+
+        # Tanggal pembuatan laporan: hari Senin pekan berikutnya pukul 08.00
+        buat_senin = senin + timedelta(weeks=1)
+        dibuat_mg = timezone.make_aware(
+            datetime(buat_senin.year, buat_senin.month, buat_senin.day, 8, 0), zona
+        )
+        daftar.append({
+            'nama': f'Kinerja layanan mingguan',
+            'sub': f'{rupiah(n_mg)} pesanan · Dokumen PDF',
+            'periode': _fmt_periode_minggu(senin, minggu_akhir),
+            'dibuat': _fmt_tanggal(timezone.localtime(dibuat_mg)),
+            'dibuat_sort': dibuat_mg,
+        })
+
+    # Urutkan: terbaru di atas
+    daftar.sort(key=lambda x: x['dibuat_sort'], reverse=True)
+    # Buang key internal
+    for d in daftar:
+        del d['dibuat_sort']
+
+    # ── Stat cards ────────────────────────────────────────────────────────────
+    # Bulan terbaru yang ada data
+    if bulan_unik:
+        thn_terbaru, bln_terbaru = bulan_unik[0]
+        is_berjalan_terbaru = (
+            thn_terbaru == hari_ini.year and bln_terbaru == hari_ini.month
+        )
+        hari_akhir_terbaru = hari_ini.day if is_berjalan_terbaru else calendar.monthrange(thn_terbaru, bln_terbaru)[1]
+
+        periode_terbaru = _fmt_periode_bulan(
+            thn_terbaru, bln_terbaru,
+            hari_akhir_terbaru if is_berjalan_terbaru else None,
+        )
+        bulan_label_terbaru = NAMA_BULAN_ID[bln_terbaru]
+
+        bulan_awal_t = timezone.make_aware(datetime(thn_terbaru, bln_terbaru, 1, 0, 0, 0), zona)
+        if bln_terbaru == 12:
+            bulan_akhir_t = timezone.make_aware(datetime(thn_terbaru + 1, 1, 1, 0, 0, 0), zona)
+        else:
+            bulan_akhir_t = timezone.make_aware(datetime(thn_terbaru, bln_terbaru + 1, 1, 0, 0, 0), zona)
+
+        total_periode = semua.filter(dibuat__gte=bulan_awal_t, dibuat__lt=bulan_akhir_t).count()
+
+        if is_berjalan_terbaru:
+            dibuat_label = f'Dibuat hari ini pukul {sekarang.hour:02d}.{sekarang.minute:02d}'
+        else:
+            dibuat_label = f'Dibuat 1 {NAMA_BULAN_ID[bln_terbaru + 1 if bln_terbaru < 12 else 1]} {thn_terbaru if bln_terbaru < 12 else thn_terbaru + 1} pukul 08.00'
+    else:
+        thn_terbaru, bln_terbaru = hari_ini.year, hari_ini.month
+        periode_terbaru = '-'
+        bulan_label_terbaru = '-'
+        total_periode = 0
+        dibuat_label = '-'
+
+    return {
+        'sekarang': sekarang,
+        'stat': {
+            'jumlah_laporan': len(daftar),
+            'periode_terbaru': periode_terbaru,
+            'bulan_label': bulan_label_terbaru,
+            'total_periode': rupiah(total_periode),
+            'dibuat_label': dibuat_label,
+        },
+        'daftar': daftar,
+        'ada_laporan': bool(daftar),
+        'footer_jumlah': rupiah(len(daftar)),
     }

@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from io import StringIO
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -8,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from . import panel
-from .models import Booking, PoinLog, Profile
+from .models import AnggotaTim, Booking, PoinLog, Profile
 from .poin import cari_akun_dari_wa, saldo_poin
 from .services import normalisasi_wa
 
@@ -944,3 +945,405 @@ class DashboardLanjutanTests(TestCase):
         self.client.post(reverse('tukar_hadiah', args=['tidak-ada']))
         self.assertEqual(saldo_poin(self.user.pk), 1000)
         self.assertEqual(self.client.get(reverse('tukar_hadiah', args=['voucher-5000'])).status_code, 405)
+
+
+def buat_anggota(nama='Dimas Setiawan', email='dimas@wuwashy.id', telepon='0812-1100-2004', peran='kurir', aktif=True):
+    return AnggotaTim.objects.create(nama=nama, email=email, telepon=telepon, peran=peran, aktif=aktif)
+
+
+class AnggotaTimModelTests(TestCase):
+    def test_telepon_dinormalisasi_dan_ditampilkan_berformat(self):
+        a = buat_anggota('Ayu Pratiwi', telepon='0812-1100-1001')
+        self.assertEqual(a.telepon, '6281211001001')
+        self.assertEqual(a.telepon_fmt, '0812-1100-1001')
+
+    def test_inisial(self):
+        self.assertEqual(buat_anggota('Ayu Pratiwi').inisial, 'AP')
+        self.assertEqual(buat_anggota('Budi', email='b@wuwashy.id', telepon='081211009999').inisial, 'B')
+
+    def test_email_disimpan_huruf_kecil(self):
+        a = buat_anggota(email='  Dimas@WuWashy.ID ')
+        a.refresh_from_db()
+        self.assertEqual(a.email, 'dimas@wuwashy.id')
+
+    def test_urutan_kasir_dulu_lalu_kurir(self):
+        buat_anggota('Kurir Satu', 'k1@wuwashy.id', '081211000001', 'kurir')
+        buat_anggota('Kasir Satu', 's1@wuwashy.id', '081211000002', 'kasir')
+        buat_anggota('Kurir Dua', 'k2@wuwashy.id', '081211000003', 'kurir')
+        self.assertEqual([a.nama for a in AnggotaTim.objects.all()], ['Kasir Satu', 'Kurir Satu', 'Kurir Dua'])
+
+
+@FAST_HASH
+class AnggotaTimViewTests(TestCase):
+    DATA = {'nama': 'Dimas Setiawan', 'email': 'dimas@wuwashy.id', 'telepon': '0812-1100-2004', 'peran': 'kurir'}
+
+    def setUp(self):
+        self.url = reverse('admin_anggota')
+        self.admin = buat_user('ayu@wuwashy.id', role=Profile.Role.ADMIN, first_name='Ayu', last_name='Pratiwi')
+        self.client.force_login(self.admin)
+
+    # ── akses ──────────────────────────────────────────────────────────────────
+    def test_anonim_diarahkan_ke_login(self):
+        self.client.logout()
+        self.assertRedirects(self.client.get(self.url), f"{reverse('login')}?next={self.url}")
+
+    def test_user_biasa_ditolak_baik_lihat_maupun_tambah(self):
+        self.client.force_login(buat_user('nadia@example.com'))
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+        self.assertEqual(self.client.post(self.url, self.DATA).status_code, 403)
+        self.assertEqual(AnggotaTim.objects.count(), 0)
+
+    # ── tampilan ───────────────────────────────────────────────────────────────
+    def test_daftar_dan_ringkasan_sesuai_desain(self):
+        call_command('seed_tim', stdout=StringIO())
+        r = self.client.get(self.url)
+        self.assertContains(r, '<h1>Anggota tim</h1>')
+        self.assertContains(r, '6 anggota aktif &middot; 3 kasir dan 3 kurir di Cabang Utama.')
+        self.assertContains(r, 'Menampilkan seluruh 6 anggota.')
+        self.assertContains(r, 'Akses sesuai peran masing-masing anggota.')
+        for teks in ('Ayu Pratiwi', 'ayu@wuwashy.id', '0812-1100-1001', 'Fajar Hidayat', 'Andi Saputra'):
+            self.assertContains(r, teks)
+        html = r.content.decode()
+        self.assertLess(html.index('Budi Santoso'), html.index('Fajar Hidayat'))  # kasir sebelum kurir
+
+    def test_anggota_nonaktif_tampil_tapi_tidak_dihitung(self):
+        buat_anggota('Aktif Kasir', 'a@wuwashy.id', '081211000001', 'kasir')
+        buat_anggota('Libur Kurir', 'l@wuwashy.id', '081211000002', 'kurir', aktif=False)
+        r = self.client.get(self.url)
+        self.assertContains(r, '1 anggota aktif &middot; 1 kasir dan 0 kurir di Cabang Utama.')
+        self.assertContains(r, 'Nonaktif')
+        self.assertContains(r, 'Menampilkan seluruh 2 anggota.')
+
+    def test_daftar_kosong(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Belum ada anggota aktif di Cabang Utama.')
+        self.assertContains(r, 'Belum ada anggota tim.')
+
+    def test_sidebar_dan_breadcrumb(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'is-active" href="/panel/anggota/"')
+        self.assertContains(r, '<strong aria-current="page">Anggota Tim</strong>')
+        self.assertNotContains(self.client.get(reverse('admin_pesanan')), 'is-active" href="/panel/anggota/"')
+
+    def test_form_tertutup_bawaan_dan_terbuka_lewat_parameter(self):
+        self.assertContains(self.client.get(self.url), 'id="form-anggota" hidden')
+        r = self.client.get(self.url + '?tambah=1')
+        self.assertNotContains(r, 'id="form-anggota" hidden')
+        self.assertContains(r, 'Tambah anggota')
+        self.assertContains(r, 'Kasir mencatat pesanan dan pembayaran. Kurir menangani penjemputan dan pengantaran.')
+
+    # ── tambah anggota ─────────────────────────────────────────────────────────
+    def test_tambah_anggota_berhasil(self):
+        r = self.client.post(self.url, {**self.DATA, 'email': 'Dimas@WuWashy.id'}, follow=True)
+        self.assertRedirects(r, self.url)
+        a = AnggotaTim.objects.get()
+        self.assertEqual((a.nama, a.email, a.telepon, a.peran, a.aktif),
+                         ('Dimas Setiawan', 'dimas@wuwashy.id', '6281211002004', 'kurir', True))
+        self.assertContains(r, 'Dimas Setiawan berhasil ditambahkan sebagai Kurir.')
+        self.assertContains(r, 'id="form-anggota" hidden')  # form menutup lagi setelah tersimpan
+
+    def test_peran_bawaan_kasir(self):
+        html = self.client.get(self.url + '?tambah=1').content.decode()
+        self.assertRegex(html, r'<input[^>]*value="kasir"[^>]*checked')
+        self.assertNotRegex(html, r'<input[^>]*value="kurir"[^>]*checked')
+
+    def test_semua_kolom_wajib(self):
+        r = self.client.post(self.url, {})
+        self.assertEqual(r.status_code, 200)
+        for pesan in ('Masukkan nama lengkap anggota.', 'Masukkan alamat email anggota.',
+                      'Masukkan nomor telepon anggota.', 'Pilih peran anggota.'):
+            self.assertContains(r, pesan)
+        self.assertNotContains(r, 'id="form-anggota" hidden')  # form tetap terbuka agar galat terlihat
+        self.assertContains(r, 'aria-invalid="true"')
+        self.assertEqual(AnggotaTim.objects.count(), 0)
+
+    def test_email_tidak_valid(self):
+        self.assertContains(self.client.post(self.url, {**self.DATA, 'email': 'bukan-email'}),
+                            'Masukkan alamat email yang valid.')
+
+    def test_email_ganda_tidak_peka_huruf(self):
+        buat_anggota()
+        r = self.client.post(self.url, {**self.DATA, 'email': 'DIMAS@wuwashy.id', 'telepon': '081299990000'})
+        self.assertContains(r, 'Email ini sudah terdaftar sebagai anggota tim.')
+        self.assertEqual(AnggotaTim.objects.count(), 1)
+
+    def test_telepon_ganda_walau_beda_format(self):
+        buat_anggota()
+        r = self.client.post(self.url, {**self.DATA, 'email': 'lain@wuwashy.id', 'telepon': '+62 812-1100-2004'})
+        self.assertContains(r, 'Nomor telepon ini sudah dipakai anggota lain.')
+        self.assertEqual(AnggotaTim.objects.count(), 1)
+
+    def test_telepon_tidak_valid(self):
+        r = self.client.post(self.url, {**self.DATA, 'telepon': '123'})
+        self.assertContains(r, 'Masukkan nomor telepon yang valid')
+
+    def test_peran_tidak_dikenal_ditolak(self):
+        r = self.client.post(self.url, {**self.DATA, 'peran': 'admin'})
+        self.assertContains(r, 'Pilih salah satu: Kasir atau Kurir.')
+        self.assertEqual(AnggotaTim.objects.count(), 0)
+
+    def test_nama_terlalu_panjang(self):
+        r = self.client.post(self.url, {**self.DATA, 'nama': 'A' * 101})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(AnggotaTim.objects.count(), 0)
+
+    def test_nama_dirapikan_dan_di_escape_saat_tampil(self):
+        self.client.post(self.url, {**self.DATA, 'nama': '  <b>Dimas</b>   Setiawan '})
+        self.assertEqual(AnggotaTim.objects.get().nama, '<b>Dimas</b> Setiawan')
+        r = self.client.get(self.url)
+        self.assertContains(r, '&lt;b&gt;Dimas&lt;/b&gt; Setiawan')
+        self.assertNotContains(r, '<b>Dimas</b>')
+
+    def test_tambah_tanpa_csrf_ditolak(self):
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True)
+        c.force_login(self.admin)
+        self.assertEqual(c.post(self.url, self.DATA).status_code, 403)
+        self.assertEqual(AnggotaTim.objects.count(), 0)
+
+
+class SeedTimTests(TestCase):
+    def test_aman_dijalankan_berulang(self):
+        out = StringIO()
+        call_command('seed_tim', stdout=out)
+        self.assertIn('6 anggota baru dibuat', out.getvalue())
+        out = StringIO()
+        call_command('seed_tim', stdout=out)
+        self.assertIn('0 anggota baru dibuat, 6 sudah ada', out.getvalue())
+        self.assertEqual(AnggotaTim.objects.count(), 6)
+        self.assertEqual(AnggotaTim.objects.filter(peran='kasir').count(), 3)
+
+
+@FAST_HASH
+class AnggotaTimEditTests(TestCase):
+    """Edit data anggota: form yang sama dengan tambah anggota (nama, email, telepon, peran)."""
+
+    def setUp(self):
+        self.admin = buat_user('ayu@wuwashy.id', role=Profile.Role.ADMIN, first_name='Ayu', last_name='Pratiwi')
+        self.client.force_login(self.admin)
+        self.a = buat_anggota()  # Dimas Setiawan, kurir, 0812-1100-2004
+        self.url = reverse('admin_anggota_edit', args=[self.a.pk])
+        self.daftar = reverse('admin_anggota')
+        self.DATA = {'nama': 'Dimas S. Setiawan', 'email': 'dimas.s@wuwashy.id',
+                     'telepon': '0812-1100-9999', 'peran': 'kasir'}
+
+    def _tetap_utuh(self):
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.nama, self.a.email, self.a.telepon, self.a.peran, self.a.aktif),
+                         ('Dimas Setiawan', 'dimas@wuwashy.id', '6281211002004', 'kurir', True))
+
+    # ── akses ──────────────────────────────────────────────────────────────────
+    def test_url(self):
+        self.assertEqual(self.url, f'/panel/anggota/{self.a.pk}/edit/')
+
+    def test_anonim_diarahkan_ke_login(self):
+        self.client.logout()
+        self.assertRedirects(self.client.get(self.url), f"{reverse('login')}?next={self.url}")
+
+    def test_user_biasa_ditolak_dan_data_tidak_berubah(self):
+        self.client.force_login(buat_user('nadia@example.com'))
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+        self.assertEqual(self.client.post(self.url, self.DATA).status_code, 403)
+        self._tetap_utuh()
+
+    def test_anggota_tidak_ada_404(self):
+        self.assertEqual(self.client.get(reverse('admin_anggota_edit', args=[9999])).status_code, 404)
+        self.assertEqual(self.client.post(reverse('admin_anggota_edit', args=[9999]), self.DATA).status_code, 404)
+
+    def test_tanpa_csrf_ditolak(self):
+        from django.test import Client
+        c = Client(enforce_csrf_checks=True)
+        c.force_login(self.admin)
+        self.assertEqual(c.post(self.url, self.DATA).status_code, 403)
+        self._tetap_utuh()
+
+    # ── tampilan ───────────────────────────────────────────────────────────────
+    def test_setiap_baris_punya_tombol_edit(self):
+        b = buat_anggota('Budi Santoso', 'budi@wuwashy.id', '081211001003', 'kasir')
+        r = self.client.get(self.daftar)
+        for anggota in (self.a, b):
+            self.assertContains(r, f'href="/panel/anggota/{anggota.pk}/edit/"')
+            self.assertContains(r, f'aria-label="Edit data {anggota.nama}"')
+
+    def test_form_terisi_data_anggota(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Edit anggota')
+        self.assertContains(r, 'Ubah data Dimas Setiawan.')
+        self.assertContains(r, 'value="Dimas Setiawan"')
+        self.assertContains(r, 'value="dimas@wuwashy.id"')
+        self.assertContains(r, 'value="0812-1100-2004"')  # berformat, bukan 62812...
+        html = r.content.decode()
+        self.assertRegex(html, r'<input[^>]*value="kurir"[^>]*checked')
+        self.assertNotRegex(html, r'<input[^>]*value="kasir"[^>]*checked')
+
+    def test_form_terbuka_dan_mengarah_ke_url_edit(self):
+        r = self.client.get(self.url)
+        self.assertNotContains(r, 'id="form-anggota" hidden')
+        self.assertContains(r, f'action="{self.url}"')
+        self.assertContains(r, 'data-mode="edit"')
+        self.assertContains(r, 'Simpan Perubahan')
+        self.assertNotContains(r, 'Simpan Anggota')
+        self.assertContains(r, 'is-editing')
+
+    def test_tombol_tambah_di_halaman_edit_menuju_mode_tambah(self):
+        self.assertContains(self.client.get(self.url), 'href="/panel/anggota/?tambah=1#form-anggota"')
+
+    def test_mode_tambah_tetap_seperti_semula(self):
+        r = self.client.get(self.daftar + '?tambah=1')
+        self.assertContains(r, 'Simpan Anggota')
+        self.assertContains(r, 'data-mode="tambah"')
+        self.assertNotContains(r, 'is-editing')
+
+    def test_sidebar_dan_breadcrumb_tetap_anggota_tim(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'is-active" href="/panel/anggota/"')
+        self.assertContains(r, '<strong aria-current="page">Anggota Tim</strong>')
+
+    # ── simpan perubahan ───────────────────────────────────────────────────────
+    def test_edit_semua_kolom_berhasil(self):
+        r = self.client.post(self.url, self.DATA, follow=True)
+        self.assertRedirects(r, self.daftar)
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.nama, self.a.email, self.a.telepon, self.a.peran),
+                         ('Dimas S. Setiawan', 'dimas.s@wuwashy.id', '6281211009999', 'kasir'))
+        self.assertEqual(AnggotaTim.objects.count(), 1)  # mengubah, bukan menambah
+        self.assertContains(r, 'Data Dimas S. Setiawan berhasil diperbarui.')
+        self.assertContains(r, 'id="form-anggota" hidden')
+
+    def test_edit_satu_kolom_saja(self):
+        self.client.post(self.url, {'nama': 'Dimas Setiawan', 'email': 'dimas@wuwashy.id',
+                                    'telepon': '0812-1100-2004', 'peran': 'kasir'})
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.peran, self.a.email, self.a.nama), ('kasir', 'dimas@wuwashy.id', 'Dimas Setiawan'))
+
+    def test_edit_peran_memperbarui_ringkasan(self):
+        r = self.client.get(self.daftar)
+        self.assertContains(r, '1 anggota aktif &middot; 0 kasir dan 1 kurir di Cabang Utama.')
+        self.client.post(self.url, {**self.DATA, 'email': 'dimas@wuwashy.id', 'telepon': '0812-1100-2004'})
+        self.assertContains(self.client.get(self.daftar), '1 anggota aktif &middot; 1 kasir dan 0 kurir di Cabang Utama.')
+
+    def test_email_dan_telepon_dirapikan_seperti_saat_tambah(self):
+        self.client.post(self.url, {**self.DATA, 'email': ' Dimas.S@WuWashy.ID ', 'telepon': '+62 812-1100-9999'})
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.email, self.a.telepon), ('dimas.s@wuwashy.id', '6281211009999'))
+
+    def test_tanpa_perubahan_diberi_tahu_dan_tidak_disimpan(self):
+        r = self.client.post(self.url, {'nama': 'Dimas Setiawan', 'email': 'DIMAS@wuwashy.id',
+                                        'telepon': '+62 812-1100-2004', 'peran': 'kurir'}, follow=True)
+        self.assertRedirects(r, self.daftar)
+        self.assertContains(r, 'Tidak ada perubahan pada data Dimas Setiawan.')
+        self.assertNotContains(r, 'berhasil diperbarui')
+
+    def test_boleh_menyimpan_email_dan_telepon_milik_sendiri(self):
+        self.client.post(self.url, {**self.DATA, 'email': 'dimas@wuwashy.id', 'telepon': '0812-1100-2004'})
+        self.a.refresh_from_db()
+        self.assertEqual((self.a.email, self.a.telepon, self.a.peran), ('dimas@wuwashy.id', '6281211002004', 'kasir'))
+
+    def test_status_aktif_tidak_ikut_berubah(self):
+        libur = buat_anggota('Libur Kasir', 'libur@wuwashy.id', '081211000009', 'kasir', aktif=False)
+        url = reverse('admin_anggota_edit', args=[libur.pk])
+        self.client.post(url, {'nama': 'Libur Kasir Baru', 'email': 'libur@wuwashy.id',
+                               'telepon': '081211000009', 'peran': 'kasir', 'aktif': 'on'})
+        libur.refresh_from_db()
+        self.assertEqual((libur.nama, libur.aktif), ('Libur Kasir Baru', False))
+
+    # ── validasi ───────────────────────────────────────────────────────────────
+    def test_kolom_wajib_diisi(self):
+        r = self.client.post(self.url, {})
+        self.assertEqual(r.status_code, 200)
+        for pesan in ('Masukkan nama lengkap anggota.', 'Masukkan alamat email anggota.',
+                      'Masukkan nomor telepon anggota.', 'Pilih peran anggota.'):
+            self.assertContains(r, pesan)
+        self.assertNotContains(r, 'id="form-anggota" hidden')
+        self._tetap_utuh()
+
+    def test_email_milik_anggota_lain_ditolak(self):
+        buat_anggota('Budi Santoso', 'budi@wuwashy.id', '081211001003', 'kasir')
+        r = self.client.post(self.url, {**self.DATA, 'email': 'BUDI@wuwashy.id'})
+        self.assertContains(r, 'Email ini sudah terdaftar sebagai anggota tim.')
+        self._tetap_utuh()
+
+    def test_telepon_milik_anggota_lain_ditolak_walau_beda_format(self):
+        buat_anggota('Budi Santoso', 'budi@wuwashy.id', '081211001003', 'kasir')
+        r = self.client.post(self.url, {**self.DATA, 'telepon': '+62 812-1100-1003'})
+        self.assertContains(r, 'Nomor telepon ini sudah dipakai anggota lain.')
+        self._tetap_utuh()
+
+    def test_telepon_tidak_valid_dan_peran_tidak_dikenal(self):
+        self.assertContains(self.client.post(self.url, {**self.DATA, 'telepon': '123'}),
+                            'Masukkan nomor telepon yang valid')
+        self.assertContains(self.client.post(self.url, {**self.DATA, 'peran': 'admin'}),
+                            'Pilih salah satu: Kasir atau Kurir.')
+        self._tetap_utuh()
+
+    def test_galat_tetap_di_mode_edit_dengan_isian_pengguna_dan_nama_asli(self):
+        r = self.client.post(self.url, {**self.DATA, 'email': 'bukan-email'})
+        self.assertContains(r, 'Masukkan alamat email yang valid.')
+        self.assertContains(r, 'Ubah data Dimas Setiawan.')       # judul memakai nama asli, bukan yang diketik
+        self.assertContains(r, 'value="Dimas S. Setiawan"')        # isian pengguna dipertahankan
+        self.assertContains(r, 'Simpan Perubahan')
+        self.assertContains(r, 'data-mode="edit"')
+        # daftar di sebelah kiri tetap menampilkan data tersimpan, bukan isian yang gagal
+        self.assertContains(r, '<strong>Dimas Setiawan</strong>')
+        self._tetap_utuh()
+
+    def test_nama_di_escape(self):
+        self.client.post(self.url, {**self.DATA, 'nama': '<b>Dimas</b>'})
+        r = self.client.get(self.daftar)
+        self.assertContains(r, '&lt;b&gt;Dimas&lt;/b&gt;')
+        self.assertNotContains(r, '<b>Dimas</b>')
+
+
+@FAST_HASH
+class GabunganLaporanAnggotaTests(TestCase):
+    """Memastikan fitur Laporan Tersimpan dan Anggota Tim berjalan berdampingan di panel yang sama."""
+
+    def setUp(self):
+        self.admin = buat_user('admin@example.com', role=Profile.Role.ADMIN, first_name='Ayu', last_name='Pratiwi')
+        self.client.force_login(self.admin)
+
+    def test_sidebar_memuat_kedua_menu_sebagai_tautan(self):
+        r = self.client.get(reverse('admin_dashboard'))
+        self.assertContains(r, f'href="{reverse("admin_laporan")}"')
+        self.assertContains(r, f'href="{reverse("admin_anggota")}"')
+
+    def test_menu_aktif_hanya_pada_halaman_yang_dibuka(self):
+        laporan = self.client.get(reverse('admin_laporan'))
+        self.assertContains(laporan, f'href="{reverse("admin_laporan")}" aria-current="page"')
+        self.assertNotContains(laporan, f'href="{reverse("admin_anggota")}" aria-current="page"')
+        anggota = self.client.get(reverse('admin_anggota'))
+        self.assertContains(anggota, f'href="{reverse("admin_anggota")}" aria-current="page"')
+        self.assertNotContains(anggota, f'href="{reverse("admin_laporan")}" aria-current="page"')
+
+    def test_menu_anggota_tetap_aktif_saat_edit(self):
+        a = buat_anggota()
+        r = self.client.get(reverse('admin_anggota_edit', args=[a.pk]))
+        self.assertContains(r, f'href="{reverse("admin_anggota")}" aria-current="page"')
+
+    def test_halaman_laporan_menampilkan_laporan_dari_pesanan(self):
+        buat_booking()
+        r = self.client.get(reverse('admin_laporan'))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Ringkasan operasional')
+        self.assertGreaterEqual(r.context['stat']['jumlah_laporan'], 1)
+
+    def test_halaman_laporan_kosong_tidak_error(self):
+        r = self.client.get(reverse('admin_laporan'))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Belum ada laporan tersimpan')
+
+    def test_hanya_admin_boleh_membuka_laporan_dan_anggota(self):
+        self.client.logout()
+        for nama in ('admin_laporan', 'admin_anggota'):
+            self.assertRedirects(self.client.get(reverse(nama)), f"{reverse('login')}?next={reverse(nama)}")
+        self.client.force_login(buat_user('pelanggan@example.com'))
+        for nama in ('admin_laporan', 'admin_anggota'):
+            self.assertEqual(self.client.get(reverse(nama)).status_code, 403)
+
+    def test_tambah_anggota_tidak_mengubah_laporan(self):
+        buat_booking()
+        sebelum = self.client.get(reverse('admin_laporan')).context['stat']['jumlah_laporan']
+        self.client.post(reverse('admin_anggota'), {
+            'nama': 'Dimas Setiawan', 'email': 'dimas@wuwashy.id', 'telepon': '0812-1100-2004', 'peran': 'kurir'})
+        self.assertEqual(AnggotaTim.objects.count(), 1)
+        self.assertEqual(self.client.get(reverse('admin_laporan')).context['stat']['jumlah_laporan'], sebelum)

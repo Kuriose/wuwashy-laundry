@@ -10,10 +10,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .decorators import admin_required
-from .forms import EMAIL_SUDAH_ADA, BookingForm, EmailLoginForm, SignUpForm
-from . import panel
+from .forms import EMAIL_SUDAH_ADA, AnggotaTimForm, BookingForm, EmailLoginForm, SignUpForm
+from . import panel, tim
 from .pesanan import konteks_pesanan_saya
-from .models import Booking, PoinLog, Profile
+from .models import AnggotaTim, Booking, PoinLog, Profile
 from .poin import konteks_poin_hadiah, pesanan_aktif, saldo_poin, tautkan_booking
 from .poin import tukar_hadiah as proses_tukar
 from .services import SERVICES, rupiah
@@ -354,3 +354,54 @@ def admin_pesanan_detail(request, pk):
         'log_poin': log_poin,
         'saldo_pelanggan': saldo_poin(b.user_id) if b.user_id else None,
     })
+
+
+@admin_required
+def admin_laporan(request):
+    """Halaman Laporan Tersimpan."""
+    return render(request, 'laundry/admin_laporan.html', {
+        **_konteks_panel(request),
+        **panel.laporan_tersimpan(),
+    })
+
+
+def _halaman_anggota(request, anggota=None):
+    """Daftar anggota + form. Mode tambah bila `anggota` kosong, mode edit bila diisi."""
+    edit_pk = anggota.pk if anggota else None
+    edit_nama = anggota.nama if anggota else ''  # nama asli, sebelum form mengubah instance di memori
+    awal = {f: getattr(anggota, f) for f in AnggotaTimForm.Meta.fields} if anggota else {}
+
+    if request.method == 'POST':
+        form = AnggotaTimForm(request.POST, instance=anggota)
+        if form.is_valid():
+            if anggota is None:
+                baru = form.save()
+                messages.success(request, f'{baru.nama} berhasil ditambahkan sebagai {baru.get_peran_display()}.')
+            elif any(form.cleaned_data[f] != nilai for f, nilai in awal.items()):
+                messages.success(request, f'Data {form.save().nama} berhasil diperbarui.')
+            else:
+                messages.info(request, f'Tidak ada perubahan pada data {edit_nama}.')
+            return redirect('admin_anggota')
+    else:
+        form = AnggotaTimForm(instance=anggota)
+
+    return render(request, 'laundry/admin_anggota.html', {
+        **_konteks_panel(request),
+        **tim.ringkasan_tim(),
+        'form': form,
+        'edit_pk': edit_pk, 'edit_nama': edit_nama,
+        # form tampil bila diminta lewat "Tambah Anggota" / "Edit", atau bila ada galat validasi
+        'form_terbuka': request.method == 'POST' or request.GET.get('tambah') == '1' or edit_pk is not None,
+    })
+
+
+@admin_required
+def admin_anggota(request):
+    """Anggota tim outlet (kasir & kurir): daftar + form tambah anggota."""
+    return _halaman_anggota(request)
+
+
+@admin_required
+def admin_anggota_edit(request, pk):
+    """Edit data anggota tim (nama, email, telepon, peran) memakai form yang sama dengan tambah anggota."""
+    return _halaman_anggota(request, get_object_or_404(AnggotaTim, pk=pk))

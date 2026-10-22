@@ -153,3 +153,47 @@ class PoinLog(models.Model):
 
     def __str__(self):
         return f'{self.user} {self.jumlah:+d} (saldo {self.saldo})'
+
+
+class AnggotaTim(models.Model):
+    """Anggota tim outlet (kasir / kurir) untuk menu "Anggota Tim" di panel admin.
+
+    Untuk saat ini hanya daftar data: anggota belum punya akun login sendiri.
+    """
+
+    class Peran(models.TextChoices):
+        KASIR = 'kasir', 'Kasir'
+        KURIR = 'kurir', 'Kurir'
+
+    nama = models.CharField(max_length=100)
+    email = models.EmailField(max_length=150, unique=True,
+                              error_messages={'unique': 'Email ini sudah terdaftar sebagai anggota tim.'})
+    # Disimpan dalam bentuk 62812xxxx (lihat services.normalisasi_wa); tampilannya lewat telepon_fmt.
+    telepon = models.CharField(max_length=20, unique=True,
+                               error_messages={'unique': 'Nomor telepon ini sudah dipakai anggota lain.'})
+    peran = models.CharField(max_length=10, choices=Peran.choices, default=Peran.KASIR)
+    aktif = models.BooleanField(default=True)
+    dibuat = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['peran', 'id']  # kasir dulu, lalu kurir; di dalam peran urut sesuai waktu ditambahkan
+        verbose_name = 'anggota tim'
+        verbose_name_plural = 'anggota tim'
+
+    def save(self, *args, **kwargs):
+        self.email = self.email.strip().lower()
+        self.telepon = normalisasi_wa(self.telepon) or self.telepon
+        super().save(*args, **kwargs)
+
+    @property
+    def inisial(self):
+        return ''.join(kata[0] for kata in self.nama.split()[:2]).upper()
+
+    @property
+    def telepon_fmt(self):
+        """'6281211001001' -> '0812-1100-1001'."""
+        nomor = '0' + self.telepon[2:] if self.telepon.startswith('62') else self.telepon
+        return '-'.join(nomor[i:i + 4] for i in range(0, len(nomor), 4))
+
+    def __str__(self):
+        return f'{self.nama} ({self.get_peran_display()})'

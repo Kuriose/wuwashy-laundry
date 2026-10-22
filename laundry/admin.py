@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Booking, PoinLog, Profile
+from .models import AnggotaTim, Booking, PoinLog, Profile
 
 
 @admin.register(Booking)
@@ -25,3 +25,11 @@ class PoinLogAdmin(admin.ModelAdmin):
     list_filter = ('dibuat',)
     search_fields = ('user__email', 'booking__resi')
     readonly_fields = ('dibuat',)
+
+
+@admin.register(AnggotaTim)
+class AnggotaTimAdmin(admin.ModelAdmin):
+    list_display = ('nama', 'peran', 'email', 'telepon', 'aktif', 'dibuat')
+    list_editable = ('aktif',)
+    list_filter = ('peran', 'aktif')
+    search_fields = ('nama', 'email', 'telepon')

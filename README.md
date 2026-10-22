@@ -12,6 +12,8 @@ Aplikasi web layanan laundry berbasis **Django**. Pelanggan bisa memesan penjemp
 - **Panel admin (ADMIN)**: dashboard statistik pesanan, daftar pesanan terbaru, dan halaman detail untuk mengubah status pesanan.
 - **Sistem poin**: setiap Rp1.000 total pesanan = 1 poin. Poin masuk otomatis saat status pesanan menjadi `selesai` dan hanya dicatat satu kali per pesanan.
 - **Penautan pesanan ke akun**: akun yang sedang login diprioritaskan, lalu nomor WhatsApp yang cocok tepat satu akun, dan terakhir dicatat sebagai tamu.
+- **Laporan tersimpan**: menu *Laporan Tersimpan* di panel admin menampilkan daftar laporan ringkasan operasional, pendapatan, rekap pesanan (bulanan), dan kinerja layanan (mingguan) yang dihitung dari data pesanan. Tombol unduh masih placeholder.
+- **Anggota tim**: menu *Anggota Tim* di panel admin menampilkan daftar kasir dan kurir outlet beserta form untuk menambah anggota baru dan mengedit data anggota (nama, email, telepon, peran). Saat ini hanya pencatatan data; anggota belum punya akun login sendiri.
 
 ## Teknologi
 
@@ -82,6 +84,7 @@ Perintah ini membuat file `db.sqlite3` di folder proyek.
 ```bash
 python manage.py seed_users      # membuat 1 akun pelanggan dan 1 akun admin untuk uji coba
 python manage.py seed_pesanan    # opsional: 60 pesanan contoh agar dashboard admin terisi
+python manage.py seed_tim        # opsional: 6 anggota tim contoh (3 kasir, 3 kurir)
 ```
 
 Kedua perintah ini hanya untuk pengembangan. `seed_users` aman dijalankan berulang kali, sedangkan `seed_pesanan` menolak berjalan jika sudah ada pesanan, kecuali ditambah opsi `--force`.
@@ -121,6 +124,9 @@ Untuk mengembalikan password akun uji ke nilai bawaan: `python manage.py seed_us
 | `/poin/` | Poin dan hadiah | USER |
 | `/panel/` | Dashboard admin | ADMIN |
 | `/panel/pesanan/<id>/` | Detail pesanan dan ubah status | ADMIN |
+| `/panel/laporan/` | Laporan tersimpan (daftar laporan per bulan dan minggu) | ADMIN |
+| `/panel/anggota/` | Anggota tim (kasir dan kurir) dan form tambah anggota | ADMIN |
+| `/panel/anggota/<id>/edit/` | Edit data anggota tim | ADMIN |
 | `/admin/` | Django Admin bawaan (kelola data mentah) | Superuser |
 
 Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan ke `/login/`. Akun USER yang membuka `/panel/` mendapat galat 403.
@@ -133,11 +139,11 @@ Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan 
 ├── requirements.txt
 ├── config/                  # pengaturan proyek (settings, urls, wsgi/asgi)
 └── laundry/                 # aplikasi utama
-    ├── models.py            # Booking, Profile, PoinLog
+    ├── models.py            # Booking, Profile, PoinLog, AnggotaTim
     ├── views.py, urls.py    # halaman dan routing
     ├── forms.py             # form booking, login, dan signup
     ├── poin.py, services.py # logika poin, katalog layanan, dan hadiah
-    ├── panel.py             # data ringkasan untuk panel admin
+    ├── panel.py, tim.py     # data ringkasan untuk panel admin dan halaman Anggota Tim
     ├── signals.py           # pemberian poin otomatis saat pesanan selesai
     ├── templates/laundry/   # template HTML
     ├── static/laundry/      # CSS dan gambar

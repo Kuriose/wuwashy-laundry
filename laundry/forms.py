@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .models import Booking, Profile
+from .models import AnggotaTim, Booking, Profile
 from .services import normalisasi_wa
 
 
@@ -180,3 +180,49 @@ class SignUpForm(forms.Form):
         )
         Profile.objects.filter(user=user).update(whatsapp=self.cleaned_data['whatsapp'])
         return user
+
+
+class AnggotaTimForm(forms.ModelForm):
+    """Form tambah dan edit anggota di panel admin (menu Anggota Tim)."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label_suffix', '')
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and not self.is_bound:
+            self.initial['telepon'] = self.instance.telepon_fmt  # tampil 0812-1100-1001, bukan 62812...
+
+    class Meta:
+        model = AnggotaTim
+        fields = ['nama', 'email', 'telepon', 'peran']
+        widgets = {
+            'nama': forms.TextInput(attrs={'placeholder': 'Masukkan nama lengkap', 'autocomplete': 'off'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'nama@wuwashy.id', 'autocomplete': 'off'}),
+            'telepon': forms.TextInput(attrs={'placeholder': 'cth. 0812-1100-0000', 'inputmode': 'tel',
+                                              'autocomplete': 'off'}),
+            'peran': forms.RadioSelect,
+        }
+        error_messages = {
+            'nama': {'required': 'Masukkan nama lengkap anggota.'},
+            'email': {'required': 'Masukkan alamat email anggota.', 'invalid': 'Masukkan alamat email yang valid.'},
+            'telepon': {'required': 'Masukkan nomor telepon anggota.'},
+            'peran': {'required': 'Pilih peran anggota.', 'invalid_choice': 'Pilih salah satu: Kasir atau Kurir.'},
+        }
+
+    def full_clean(self):
+        super().full_clean()
+        # tandai kolom bermasalah untuk pembaca layar (dipakai juga oleh CSS)
+        for nama in self.errors:
+            if nama in self.fields:
+                self.fields[nama].widget.attrs.update({'aria-invalid': 'true', 'aria-describedby': f'err-{nama}'})
+
+    def clean_nama(self):
+        return ' '.join(self.cleaned_data['nama'].split())
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip().lower()
+
+    def clean_telepon(self):
+        nomor = normalisasi_wa(self.cleaned_data['telepon'])
+        if not nomor:
+            raise ValidationError('Masukkan nomor telepon yang valid, cth. 0812-1100-1001.')
+        return nomor

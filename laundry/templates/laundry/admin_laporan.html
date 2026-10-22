@@ -1,0 +1,81 @@
+{% extends 'laundry/panel_base.html' %}
+{% block title %}Laporan Tersimpan{% endblock %}
+{% block crumb %}Laporan Tersimpan{% endblock %}
+{% block content %}
+
+<header class="page-head">
+  <div>
+    <h1>Laporan tersimpan</h1>
+    <p>Unduh rekap operasional dan pendapatan {{ outlet_nama }}.</p>
+  </div>
+</header>
+
+{# ── Stat cards ── #}
+<section class="lp-stats" aria-label="Ringkasan laporan">
+  <article class="lp-stat">
+    <p class="lp-stat-label">Laporan tersedia</p>
+    <p class="lp-stat-value">{{ stat.jumlah_laporan }}</p>
+    <p class="lp-stat-link">Rekap harian, mingguan, dan bulanan</p>
+    <p class="lp-stat-note">Siap diunduh</p>
+  </article>
+  <article class="lp-stat">
+    <p class="lp-stat-label">Periode terbaru</p>
+    <p class="lp-stat-value lp-stat-value--lg">{{ stat.bulan_label }}</p>
+    <p class="lp-stat-link">{{ stat.periode_terbaru }}</p>
+    <p class="lp-stat-note">{{ stat.dibuat_label }}</p>
+  </article>
+  <article class="lp-stat">
+    <p class="lp-stat-label">Total pesanan periode ini</p>
+    <p class="lp-stat-value">{{ stat.total_periode }}</p>
+    <p class="lp-stat-link">Semua layanan laundry</p>
+    <p class="lp-stat-note">Termasuk seluruh status</p>
+  </article>
+</section>
+
+{# ── Tabel laporan ── #}
+{% if ada_laporan %}
+<div class="lp-table-wrap">
+  <table class="lp-table" aria-label="Daftar laporan tersimpan">
+    <thead>
+      <tr>
+        <th scope="col">Nama laporan</th>
+        <th scope="col">Periode</th>
+        <th scope="col">Dibuat pada</th>
+        <th scope="col">Unduhan</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lap in daftar %}
+      <tr>
+        <td class="lp-td-name">
+          <span class="lp-doc-icon" aria-hidden="true">
+            <svg class="ic" aria-hidden="true"><use href="#i-report"/></svg>
+          </span>
+          <span>
+            <strong>{{ lap.nama }}</strong>
+            <small>{{ lap.sub }}</small>
+          </span>
+        </td>
+        <td>{{ lap.periode }}</td>
+        <td>{{ lap.dibuat }}</td>
+        <td>
+          {# Fitur unduh belum tersedia — tombol placeholder #}
+          <button class="btn-lime btn-unduh" type="button" disabled title="Segera hadir">
+            Unduh Laporan
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="lp-footer">Menampilkan seluruh {{ footer_jumlah }} laporan &middot; Dokumen tersedia dalam format PDF.</p>
+{% else %}
+<div class="lp-empty">
+  <svg class="ic lp-empty-icon" aria-hidden="true"><use href="#i-report"/></svg>
+  <p>Belum ada laporan tersimpan.</p>
+  <p class="lp-empty-sub">Laporan akan muncul secara otomatis setelah ada data pesanan.</p>
+</div>
+{% endif %}
+
+{% endblock %}

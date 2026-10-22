@@ -1,0 +1,110 @@
+{% extends 'laundry/panel_base.html' %}
+{% block title %}Anggota Tim{% endblock %}
+{% block crumb %}Anggota Tim{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="dp-msgs" role="status">
+  {% for m in messages %}<p class="dp-msg {{ m.tags }}">{{ m }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<header class="page-head">
+  <div>
+    <h1>Anggota tim</h1>
+    <p>{% if total_aktif %}{{ total_aktif }} anggota aktif &middot; {{ kasir_aktif }} kasir dan {{ kurir_aktif }} kurir di {{ outlet_nama }}.{% else %}Belum ada anggota aktif di {{ outlet_nama }}.{% endif %}</p>
+  </div>
+  <a class="btn-lime" id="btnTambah" href="{% url 'admin_anggota' %}?tambah=1#form-anggota" aria-controls="form-anggota" aria-expanded="{% if form_terbuka %}true{% else %}false{% endif %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Tambah Anggota</a>
+</header>
+
+<div class="tim-grid{% if form_terbuka %} is-open{% endif %}">
+  <section class="card" aria-labelledby="tim-daftar">
+    <h2 id="tim-daftar">Daftar anggota</h2>
+    <p class="card-sub">Akses sesuai peran masing-masing anggota.</p>
+
+    {% if anggota %}
+    <ul class="tim-list">
+      {% for a in anggota %}
+      <li class="tim-row{% if a.pk == edit_pk %} is-editing{% endif %}">
+        <span class="tim-avatar" aria-hidden="true">{{ a.inisial }}</span>
+        <div class="tim-info">
+          <strong>{{ a.nama }}</strong>
+          <span>{{ a.email }}</span>
+          <span>{{ a.telepon_fmt }}</span>
+        </div>
+        <div class="tim-role{% if not a.aktif %} is-off{% endif %}">
+          <strong>{{ a.get_peran_display }}</strong>
+          <small><i aria-hidden="true"></i>{% if a.aktif %}Aktif{% else %}Nonaktif{% endif %}</small>
+        </div>
+        <a class="tim-edit" href="{% url 'admin_anggota_edit' a.pk %}" aria-label="Edit data {{ a.nama }}"{% if a.pk == edit_pk %} aria-current="true"{% endif %}>Edit</a>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="tim-foot">Menampilkan seluruh {{ total }} anggota.</p>
+    {% else %}
+    <p class="tim-empty">Belum ada anggota tim. Pilih <strong>Tambah Anggota</strong> untuk memulai.</p>
+    {% endif %}
+  </section>
+
+  <section class="card tim-form" id="form-anggota"{% if not form_terbuka %} hidden{% endif %} data-mode="{% if edit_pk %}edit{% else %}tambah{% endif %}" aria-labelledby="tim-form-judul">
+    <h2 id="tim-form-judul">{% if edit_pk %}Edit anggota{% else %}Tambah anggota{% endif %}</h2>
+    <p class="card-sub">{% if edit_pk %}Ubah data {{ edit_nama }}.{% else %}Isi data anggota baru untuk {{ outlet_nama }}.{% endif %}</p>
+
+    <form method="post" action="{% if edit_pk %}{% url 'admin_anggota_edit' edit_pk %}{% else %}{% url 'admin_anggota' %}{% endif %}" novalidate>
+      {% csrf_token %}
+
+      <div class="tim-field">
+        <label for="{{ form.nama.id_for_label }}">Nama lengkap <span aria-hidden="true">*</span></label>
+        {{ form.nama }}
+        {% if form.nama.errors %}<p class="tim-err" id="err-nama">{{ form.nama.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="tim-field">
+        <label for="{{ form.email.id_for_label }}">Alamat email <span aria-hidden="true">*</span></label>
+        {{ form.email }}
+        {% if form.email.errors %}<p class="tim-err" id="err-email">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="tim-field">
+        <label for="{{ form.telepon.id_for_label }}">Nomor telepon <span aria-hidden="true">*</span></label>
+        {{ form.telepon }}
+        {% if form.telepon.errors %}<p class="tim-err" id="err-telepon">{{ form.telepon.errors.0 }}</p>{% endif %}
+      </div>
+
+      <fieldset class="tim-field tim-fieldset">
+        <legend>Peran anggota <span aria-hidden="true">*</span></legend>
+        <div class="tim-roles">
+          {% for r in form.peran %}
+          <label class="tim-role-opt" for="{{ r.id_for_label }}">{{ r.tag }}<span>{{ r.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+        {% if form.peran.errors %}<p class="tim-err" id="err-peran">{{ form.peran.errors.0 }}</p>{% endif %}
+        <p class="tim-hint">Kasir mencatat pesanan dan pembayaran. Kurir menangani penjemputan dan pengantaran.</p>
+      </fieldset>
+
+      <button class="btn-lime tim-save" type="submit">{% if edit_pk %}Simpan Perubahan{% else %}Simpan Anggota{% endif %}</button>
+      <a class="tim-cancel" href="{% url 'admin_anggota' %}">Batal</a>
+    </form>
+  </section>
+</div>
+
+<script>
+  // Tanpa JavaScript, tombol tetap berfungsi lewat ?tambah=1. Dengan JavaScript, form muncul tanpa muat ulang.
+  (() => {
+    const btn = document.getElementById('btnTambah');
+    const pane = document.getElementById('form-anggota');
+    const grid = pane.parentElement;
+    if (pane.dataset.mode === 'edit') {  // halaman edit: form sudah terisi, tombol Tambah berpindah ke mode tambah
+      pane.querySelector('input[name="nama"]').focus({ preventScroll: true });
+      return;
+    }
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      pane.hidden = false;
+      grid.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      pane.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      pane.querySelector('input[name="nama"]').focus({ preventScroll: true });
+    });
+  })();
+</script>
+{% endblock %}
