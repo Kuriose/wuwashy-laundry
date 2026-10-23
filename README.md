@@ -322,7 +322,7 @@ Tanpa file `.env`, aplikasi berjalan dalam mode pengembangan (`DEBUG` aktif). Un
    gunicorn config.wsgi
    ```
 
-Catatan:
+Catatan Program:
 
 - Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
 - File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
