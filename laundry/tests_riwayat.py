@@ -47,11 +47,11 @@ class RiwayatPesananTests(TestCase):
         self.assertNotIn(milik_lain, hasil)
 
     def test_tampilan_baris_sesuai_desain(self):
-        b = buat(self.user)                                   # express 5 kg = Rp 60.000, +60 poin
+        b = buat(self.user)                                   # express 5 pcs = Rp 60.000, +60 poin
         self.client.force_login(self.user)
         r = self.client.get(self.url)
         for teks in ('Bersihnya sudah, ceritanya tersimpan.', 'Semua riwayat', 'PESANAN', 'TOTAL &amp; POIN', 'AKSI',
-                     f'#{b.resi}', 'Cuci Express', '5 kg', 'Rp 60.000', '+60 poin', 'Selesai', 'Lihat detail',
+                     f'#{b.resi}', 'Cuci Express', '5 pcs', 'Rp 60.000', '+60 poin', 'Selesai', 'Lihat detail',
                      'Pesan lagi', 'Menampilkan 1 dari 1 pesanan', 'Terapkan filter',
                      'Harga mengikuti daftar layanan yang berlaku saat pemesanan'):
             self.assertContains(r, teks)

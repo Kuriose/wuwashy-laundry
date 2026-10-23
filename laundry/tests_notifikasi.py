@@ -231,7 +231,7 @@ class NotifikasiPoinHadiahTests(TestCase):
     def test_poin_yang_masuk_belakangan_tetap_diberitahukan(self):
         b = selesaikan(buat_pesanan(self.user, layanan='reguler', berat=Decimal('0.1')))
         self.assertFalse(Notifikasi.objects.filter(tipe='poin').exists())
-        b.terapkan_tagihan(Decimal('5'))  # 5 kg reguler = Rp35.000 -> 35 poin, status tidak berubah
+        b.terapkan_tagihan(Decimal('5'))  # 5 pcs reguler = Rp35.000 -> 35 poin, status tidak berubah
         self.assertEqual(Notifikasi.objects.get(tipe='poin').judul, '+35 poin masuk ke akunmu')
 
     def test_saldo_melewati_batas_hadiah_membuat_notifikasi_hadiah_sekali_saja(self):

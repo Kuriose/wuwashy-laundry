@@ -61,11 +61,9 @@
       <a class="nav-item{% if cur == 'admin_laporan' %} is-active{% endif %}" href="{% url 'admin_laporan' %}"{% if cur == 'admin_laporan' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-report"/></svg>Laporan Tersimpan</a>
       <a class="nav-item{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} is-active{% endif %}" href="{% url 'admin_anggota' %}"{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-team"/></svg>Anggota Tim</a>
       {% endwith %}
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-bolt"/></svg>Otomatisasi</span>
     </nav>
 
     <div class="side-bottom">
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-gear"/></svg>Pengaturan</span>
       <button class="nav-item" type="button" id="openLogout" aria-haspopup="dialog"><svg class="ic"><use href="#i-logout"/></svg>Keluar</button>
     </div>
   </aside>

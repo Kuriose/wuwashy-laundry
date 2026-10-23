@@ -39,11 +39,11 @@
     <section class="card" aria-labelledby="dp-rinci">
       <h2 id="dp-rinci">Rincian layanan</h2>
       <table class="dp-tbl">
-        <thead><tr><th>Layanan</th><th>Berat &times; tarif</th><th class="num">Subtotal</th></tr></thead>
+        <thead><tr><th>Layanan</th><th>Jumlah &times; tarif</th><th class="num">Subtotal</th></tr></thead>
         <tbody>
           <tr>
             <td><strong>{{ b.nama_layanan }}</strong></td>
-            <td>{{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} <small class="dp-muted">({% if b.berat_final is not None %}hasil timbang{% else %}estimasi pelanggan{% endif %})</small> &times; Rp {{ b.harga_satuan_fmt }}</td>
+            <td>{{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} <small class="dp-muted">({% if b.berat_final is not None %}hasil hitung{% else %}input pelanggan{% endif %})</small> &times; Rp {{ b.harga_satuan_fmt }}</td>
             <td class="num"><strong>Rp {{ b.dasar_fmt }}</strong></td>
           </tr>
           {% if b.koreksi_harga %}
@@ -60,7 +60,7 @@
 
     <section class="card" aria-labelledby="dp-tag">
       <h2 id="dp-tag">Tagihan</h2>
-      <p class="card-sub">Isi berat/jumlah hasil timbang dan koreksi harga bila ada. Total dihitung otomatis.</p>
+      <p class="card-sub">Isi jumlah pakaian hasil hitung dan koreksi harga bila ada. Total dihitung otomatis.</p>
       {% if tagihan_terkunci %}
       <p class="dp-lock">Poin pesanan ini sudah diberikan, jadi tagihan dikunci agar buku poin pelanggan tetap sesuai.</p>
       {% else %}

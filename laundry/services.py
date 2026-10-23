@@ -1,14 +1,14 @@
 SERVICES = [
-    {'key': 'reguler', 'jam': 48, 'nama': 'Cuci Reguler', 'harga': 7000, 'satuan': 'kg', 'badge': '',
+    {'key': 'reguler', 'jam': 48, 'nama': 'Cuci Reguler', 'harga': 7000, 'satuan': 'pcs', 'badge': '',
      'desc': 'Cuci basah, pengeringan, lipat rapi, dan pewangi premium untuk pakaian sehari-hari.',
      'estimasi': 'Selesai dalam 2 hari', 'img': 'layanan-reguler.jpg'},
-    {'key': 'express', 'jam': 6, 'nama': 'Cuci Express', 'harga': 12000, 'satuan': 'kg', 'badge': 'TERPOPULER',
+    {'key': 'express', 'jam': 6, 'nama': 'Cuci Express', 'harga': 12000, 'satuan': 'pcs', 'badge': 'TERPOPULER',
      'desc': 'Layanan kilat super cepat untuk kebutuhan mendadak Anda. Pakaian bersih wangi hari ini juga!',
      'estimasi': 'Selesai dalam 6 jam', 'img': 'layanan-express.jpg'},
     {'key': 'dry', 'jam': 72, 'nama': 'Dry Cleaning', 'harga': 25000, 'satuan': 'pcs', 'badge': '',
      'desc': 'Perawatan khusus jas, kebaya, gaun, atau bahan sensitif lainnya dengan teknik profesional.',
      'estimasi': 'Selesai dalam 3 hari', 'img': 'layanan-dry.jpg'},
-    {'key': 'setrika', 'jam': 24, 'nama': 'Setrika Saja', 'harga': 5000, 'satuan': 'kg', 'badge': '',
+    {'key': 'setrika', 'jam': 24, 'nama': 'Setrika Saja', 'harga': 5000, 'satuan': 'pcs', 'badge': '',
      'desc': 'Pakaian kusut Anda akan langsung licin rapi dengan setrika uap modern kami.',
      'estimasi': 'Selesai dalam 1 hari', 'img': 'layanan-setrika.jpg'},
 ]

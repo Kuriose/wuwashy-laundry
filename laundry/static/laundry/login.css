@@ -5,7 +5,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--navy); background: #fff; line-height: 1.5; }
-h1 { font-family: 'Outfit', sans-serif; margin: 0; }
+h1 { font-family: 'Afacad Flux', sans-serif; margin: 0; }
 p { margin: 0; }
 a { color: inherit; }
 .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
@@ -19,9 +19,9 @@ a { color: inherit; }
 .wave-outer path { fill: #d9ebff; }
 .wave-mid path { fill: #8ea8d6; }
 .auth-photo { clip-path: url(#auth-photo-clip); }
-.auth-photo img { width: 84%; height: 100%; max-width: none; object-fit: cover; object-position: left top; }
-.auth-dots { position: absolute; left: 41%; bottom: 28px; display: flex; gap: 10px; }
-.auth-dots span { width: 24px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.28); border: 1px solid rgba(255,255,255,.4); }
+.auth-photo img { position: absolute; top: 0; left: 0; width: 84%; height: 100%; max-width: none; object-fit: cover; object-position: left top; will-change: transform; }
+.auth-dots { position: absolute; left: 37%; bottom: 28px; transform: translateX(-50%); display: flex; gap: 10px; }
+.auth-dots span { cursor: pointer; transition: width .3s, background .3s; width: 24px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.28); border: 1px solid rgba(255,255,255,.4); }
 .auth-dots span.on { width: 54px; background: #5aaaf5; border-color: #5aaaf5; }
 
 /* ---------- sisi form ---------- */
@@ -84,3 +84,4 @@ h1 { font-size: clamp(38px, 4.4vw, 58px); font-weight: 700; letter-spacing: -.02
 
 /* ---------- sign up ---------- */
 .field-hint { color: var(--ink-2); font-size: 13.5px; margin-top: 8px; }
+

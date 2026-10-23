@@ -5,8 +5,17 @@
 <main>
 <section class="hero" id="home">
   <span class="watermark" aria-hidden="true">WuWashy</span>
-  <span class="bubble b1"></span><span class="bubble b2"></span>
-  <img class="hero-img" src="{% static 'laundry/img/hero.jpg' %}" alt="Tumpukan celana jeans yang bersih dan terlipat rapi">
+  <span class="bubble" style="--x:6%;--s:60px;--d:14s;--dl:0s;--y:8%"></span>
+  <span class="bubble" style="--x:14%;--s:26px;--d:9s;--dl:-3s;--y:18%"></span>
+  <span class="bubble" style="--x:24%;--s:110px;--d:16s;--dl:-7s;--y:30%"></span>
+  <span class="bubble" style="--x:36%;--s:38px;--d:11s;--dl:-5s;--y:12%"></span>
+  <span class="bubble" style="--x:47%;--s:18px;--d:8s;--dl:-9s;--y:40%"></span>
+  <span class="bubble" style="--x:58%;--s:84px;--d:15s;--dl:-2s;--y:55%"></span>
+  <span class="bubble" style="--x:68%;--s:30px;--d:10s;--dl:-6s;--y:25%"></span>
+  <span class="bubble" style="--x:78%;--s:140px;--d:18s;--dl:-11s;--y:45%"></span>
+  <span class="bubble" style="--x:88%;--s:44px;--d:12s;--dl:-4s;--y:35%"></span>
+  <span class="bubble" style="--x:95%;--s:22px;--d:9s;--dl:-8s;--y:60%"></span>
+  <img class="hero-img" src="{% static 'laundry/img/hero-home.webp' %}" alt="Tumpukan celana jeans yang bersih dan terlipat rapi">
   <div class="hero-copy">
     <h1><span class="script">WuWashy</span><span class="hero-sub">Laundry</span></h1>
     <p>Laundry Bersih, Hidup Lebih Rapi! Kami merawat pakaian Anda dengan penuh kasih sayang, bersih berkilau seperti baru dengan keharuman yang tahan lama.</p>
@@ -15,8 +24,22 @@
 </section>
 
 {% include 'laundry/_about_section.html' %}
-{% include 'laundry/_testimoni_section.html' %}
-{% include 'laundry/_services_section.html' %}
 {% include 'laundry/_outlet_section.html' %}
+{% include 'laundry/_layanan_section.html' %}
+{% include 'laundry/_why_section.html' %}
+{% include 'laundry/_testimoni_section.html' %}
 </main>
+<script>
+  // kartu interaktif: klik / Enter / Spasi untuk memilih, klik lagi untuk melepas
+  document.querySelectorAll('.tap').forEach(el => {
+    const toggle = () => {
+      const grup = el.parentElement.querySelectorAll('.tap');
+      const nyala = !el.classList.contains('on');
+      grup.forEach(x => x.classList.remove('on'));
+      el.classList.toggle('on', nyala);
+    };
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+</script>
 {% endblock %}

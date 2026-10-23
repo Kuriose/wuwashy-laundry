@@ -1,0 +1,14 @@
+{% load static %}
+<section class="why">
+  <div class="wrap">
+    <span class="pill">KEUNGGULAN</span>
+    <h2 class="h2 center">Kenapa Wajib Memilih Wuwashy?</h2>
+    <p class="center small">Kami berdedikasi menjaga kepuasan Anda melalui pelayanan yang melampaui harapan.</p>
+    <div class="why-grid">
+      {% for foto, judul, teks in keunggulan %}
+      <article class="why-item tap" tabindex="0">{% if foto %}<img class="why-img" src="{% static 'laundry/img/' %}{{ foto }}" alt="">{% else %}<div class="why-img ph-photo" role="img" aria-label="Foto {{ judul }} belum tersedia">Photo</div>{% endif %}<h3>{{ judul }}</h3><p>{{ teks }}</p></article>
+      {% endfor %}
+    </div>
+    <p class="center"><a class="btn btn-lime btn-outline" href="{% url 'booking' %}">Booking Sekarang</a></p>
+  </div>
+</section>

@@ -144,7 +144,7 @@ class Booking(models.Model):
 
     @property
     def satuan(self):
-        return LAYANAN.get(self.layanan, {}).get('satuan', 'kg')
+        return LAYANAN.get(self.layanan, {}).get('satuan', 'pcs')
 
     @property
     def estimasi_selesai(self):

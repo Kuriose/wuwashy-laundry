@@ -1,16 +1,16 @@
 {% extends 'laundry/auth_base.html' %}
-{% block title %}Log in - WuWashy Laundry{% endblock %}
+{% block title %}Masuk - WuWashy Laundry{% endblock %}
 {% block card %}
-      <p class="auth-eyebrow"><span></span>A FRESH START</p>
-      <h1>Welcome back!</h1>
-      <p class="auth-sub">Log in to book a pickup, track your laundry, and enjoy a little more free time.</p>
+      <p class="auth-eyebrow"><span></span>AWAL YANG SEGAR</p>
+      <h1>Selamat datang kembali!</h1>
+      <p class="auth-sub">Masuk untuk pesan jemput, pantau cucianmu, dan nikmati waktu luang yang lebih banyak.</p>
 
       <form method="post" action="{% url 'login' %}" novalidate>
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
 
         <div class="field">
-          <label for="{{ form.username.id_for_label }}">Email address</label>
+          <label for="{{ form.username.id_for_label }}">Alamat email</label>
           <div class="input{% if form.username.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-mail"/></svg>
             {{ form.username }}
@@ -19,11 +19,11 @@
         </div>
 
         <div class="field">
-          <label for="{{ form.password.id_for_label }}">Password</label>
+          <label for="{{ form.password.id_for_label }}">Kata sandi</label>
           <div class="input{% if form.password.errors %} invalid{% endif %}">
             <svg class="ic lead"><use href="#i-lock"/></svg>
             {{ form.password }}
-            <button class="toggle-pw" type="button" aria-label="Show password" aria-pressed="false">
+            <button class="toggle-pw" type="button" aria-label="Tampilkan kata sandi" aria-pressed="false">
               <svg class="ic"><use href="#i-eye-off"/></svg>
             </button>
           </div>
@@ -33,30 +33,17 @@
         <div class="row">
           <label class="check">
             <input type="checkbox" name="remember_me" id="id_remember_me"{% if form.remember_me.value %} checked{% endif %}>
-            <span>Remember me</span>
+            <span>Ingat saya</span>
           </label>
-          <a class="link" href="#" title="Coming soon">Forgot password?</a>
+          <a class="link" href="#" title="Segera hadir">Lupa kata sandi?</a>
         </div>
 
         {% if form.non_field_errors %}
         <div class="form-error" role="alert">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
         {% endif %}
 
-        <button class="btn-login" type="submit">Log in <svg class="ic"><use href="#i-arrow"/></svg></button>
+        <button class="btn-login" type="submit">Masuk <svg class="ic"><use href="#i-arrow"/></svg></button>
       </form>
 
-      <div class="divider"><span>or continue with</span></div>
-
-      <div class="social">
-        <button type="button" disabled title="Coming soon">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.96H12v3.71h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.32 2.97-7.27z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.5c-.9.6-2.04.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.58A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.41 13.91a6 6 0 0 1 0-3.82V7.51H3.07a10 10 0 0 0 0 8.98l3.34-2.58z"/><path fill="#EA4335" d="M12 5.97c1.47 0 2.79.5 3.83 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2A10 10 0 0 0 3.07 7.51l3.34 2.58C7.2 7.73 9.4 5.97 12 5.97z"/></svg>
-          Google
-        </button>
-        <button type="button" disabled title="Coming soon">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M16.37 12.62c-.03-2.7 2.2-4 2.3-4.06-1.25-1.83-3.2-2.08-3.9-2.11-1.66-.17-3.24.98-4.08.98-.84 0-2.14-.96-3.52-.93-1.81.03-3.48 1.05-4.41 2.67-1.88 3.26-.48 8.1 1.35 10.75.9 1.3 1.97 2.75 3.38 2.7 1.36-.05 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.02 2.38-1.32 3.27-2.62 1.03-1.5 1.46-2.96 1.48-3.04-.03-.01-2.84-1.09-2.87-4.31zM13.7 4.67c.75-.9 1.25-2.16 1.11-3.41-1.08.04-2.38.72-3.15 1.62-.69.8-1.3 2.08-1.13 3.31 1.2.09 2.42-.61 3.17-1.52z"/></svg>
-          Apple
-        </button>
-      </div>
-
-      <p class="signup">New to WuWashy? <a class="link" href="{% url 'signup' %}">Sign up</a></p>
+      <p class="signup">Belum punya akun? <a class="link" href="{% url 'signup' %}">Daftar</a></p>
 {% endblock %}

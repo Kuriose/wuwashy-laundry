@@ -15,7 +15,7 @@ Aplikasi web layanan laundry berbasis **Django**. Pelanggan bisa memesan penjemp
 - **Alamat saya** (`/alamat/`): pelanggan menyimpan beberapa alamat (label, penerima, WhatsApp, kecamatan, kota, kode pos, catatan kurir). Satu alamat menjadi alamat utama, yang otomatis mengisi form booking dan tampil di kartu alamat Beranda, Pesanan saya, dan Akun saya. Daftar kota dan kecamatan ada di `WILAYAH` (`laundry/services.py`).
 - **Riwayat pesanan** (`/riwayat/`): ringkasan (pesanan selesai, total transaksi, poin didapat), filter (nomor/layanan, periode, layanan), pembagian halaman, tombol Pesan lagi. Logikanya ada di `laundry/riwayat.py`.
 - **Pencarian pesanan**: kolom cari di header dashboard pelanggan (`/cari/`) menemukan pesanan milik akun itu, semua status.
-- **Tagihan di panel admin**: admin mengisi berat hasil timbang dan koreksi harga di halaman detail pesanan. Tagihan dikunci setelah poin diberikan.
+- **Tagihan di panel admin**: admin mengisi jumlah pakaian hasil hitung dan koreksi harga di halaman detail pesanan. Tagihan dikunci setelah poin diberikan.
 - **Notifikasi** (`/notifikasi/`): setiap pesanan baru, perubahan status, poin masuk, dan hadiah yang sudah bisa ditukar otomatis membuat `Notifikasi` untuk pemilik akun. Halamannya punya filter (Semua, Belum dibaca, Pesanan, Poin & hadiah), pembagian halaman, tombol Tandai semua dibaca, dan titik biru di ikon lonceng header selama ada yang belum dibaca. Pembuatnya ada di `laundry/notifikasi.py` (tiap kelas menentukan ikon dan tautannya sendiri), logika halamannya di `laundry/kotak_notifikasi.py`.
 - **Penautan pesanan ke akun**: akun yang sedang login diprioritaskan, lalu nomor WhatsApp yang cocok tepat satu akun, dan terakhir dicatat sebagai tamu.
 

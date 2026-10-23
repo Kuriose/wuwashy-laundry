@@ -26,30 +26,26 @@
   </div>
 
   <div class="quotes-band">
-    <div class="quotes">
-      <article class="q-white">
-        <img class="q-photo" src="{% static 'laundry/img/testimoni-maya.jpg' %}" alt="Maya Chen">
-        <div class="q-body">
-          <span class="q-mark">“</span>
-          <p>Sejak langganan WuWashy, akhir pekan saya kembali. Baju kerja datang rapi, wanginya tahan sampai lusa, dan kurirnya selalu tepat waktu.</p>
-          <strong>Maya Chen</strong><small>Creative Director, Layers Studio</small>
-        </div>
-      </article>
-      <article class="q-blue">
-        <div class="stars" aria-label="5 bintang">★★★★★</div>
-        <p>Layanan express-nya menyelamatkan saya sebelum presentasi klien. Pagi dijemput, sore sudah rapi di rumah.</p>
-        <div class="q-who"><img class="avatar" src="{% static 'laundry/img/avatar-jordan.jpg' %}" alt=""><span><strong>Jordan Ellis</strong><small>Freelance Product Designer</small></span></div>
-      </article>
+    <div class="mesin">
+      <video class="mesin-video" autoplay muted loop playsinline preload="metadata" poster="{% static 'laundry/img/mesin-cuci-poster.jpg' %}" aria-label="Mesin cuci yang sedang berputar">
+        <source src="{% static 'laundry/video/mesin-cuci.mp4' %}" type="video/mp4">
+      </video>
     </div>
   </div>
+  <script>
+    (function () {
+      var v = document.querySelector('.mesin-video');
+      if (v && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); }
+    })();
+  </script>
 
   <div class="wrap praktis">
     <h2 class="h2 center">Kami membuat hari mencuci Anda<br><em>jadi praktis dan bebas stres</em></h2>
     <p class="center lead-c">Kami menjemput, mencuci, dan mengantar kembali pakaian Anda. Anda cukup duduk manis, sisanya biar kami yang kerjakan dengan teliti dan penuh perhatian.</p>
     <div class="trio">
-      <article class="gcard"><h3>Professional Team</h3><span class="gicon"><svg class="ic"><use href="#i-team"/></svg></span><p>Tenaga berpengalaman yang teliti merawat setiap helai pakaianmu.</p></article>
-      <article class="gcard"><h3>Target Oriented</h3><span class="gicon"><svg class="ic"><use href="#i-target"/></svg></span><p>Selalu fokus memberikan hasil cucian yang paling bersih, rapi, dan sesuai standar.</p></article>
-      <article class="gcard"><h3>Statistic</h3><span class="gicon"><svg class="ic"><use href="#i-chart"/></svg></span><p>1.000+ pelanggan aktif yang rutin mempercayakan pakaiannya tiap bulan.</p></article>
+      <article class="gcard tap" tabindex="0"><h3>Professional Team</h3><span class="gicon"><svg class="ic"><use href="#i-team"/></svg></span><p>Tenaga berpengalaman yang teliti merawat setiap helai pakaianmu.</p></article>
+      <article class="gcard tap" tabindex="0"><h3>Target Oriented</h3><span class="gicon"><svg class="ic"><use href="#i-target"/></svg></span><p>Selalu fokus memberikan hasil cucian yang paling bersih, rapi, dan sesuai standar.</p></article>
+      <article class="gcard tap" tabindex="0"><h3>Statistic</h3><span class="gicon"><svg class="ic"><use href="#i-chart"/></svg></span><p>1.000+ pelanggan aktif yang rutin mempercayakan pakaiannya tiap bulan.</p></article>
     </div>
   </div>
 </section>
