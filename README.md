@@ -1,4 +1,4 @@
-# WuWashy Laundry
+# WuWashy Laundry -- Sistem Manajemen Laundry Berbasis Website
 
 Aplikasi web layanan laundry berbasis **Django**. Pelanggan bisa memesan penjemputan laundry, memantau pesanan, dan mengumpulkan poin. Admin outlet mengelola pesanan lewat panel khusus.
 
