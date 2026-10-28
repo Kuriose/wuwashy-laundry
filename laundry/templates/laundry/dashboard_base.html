@@ -64,7 +64,7 @@
       {% endwith %}
       <a class="nav-item{% if request.resolver_match.url_name == 'alamat_saya' %} is-active{% endif %}" href="{% url 'alamat_saya' %}"{% if request.resolver_match.url_name == 'alamat_saya' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-pin"/></svg>Alamat saya</a>
       <a class="nav-item{% if request.resolver_match.url_name == 'notifikasi' %} is-active{% endif %}" href="{% url 'notifikasi' %}"{% if request.resolver_match.url_name == 'notifikasi' %} aria-current="page"{% endif %}><svg class="ic"><use href="#i-bell"/></svg>Notifikasi</a>
-      <span class="nav-item is-soon" title="Segera hadir"><svg class="ic"><use href="#i-search"/></svg>Lacak resi</span>
+      <span class="nav-item is-soon" title="Segera hadir" style="display:none;"><svg class="ic"><use href="#i-search"/></svg>Lacak resi</span>
       {% endblock %}
     </nav>
 
