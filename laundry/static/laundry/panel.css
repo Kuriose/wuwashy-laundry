@@ -50,7 +50,7 @@ body.sidebar-collapsed .sidebar { padding: 0; opacity: 0; visibility: hidden; po
 .today { font-size: 13px; color: var(--ink-2); }
 .who { display: flex; align-items: center; gap: 12px; font-size: 13px; }
 .avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--tint); color: var(--navy); font-size: 11.5px; font-weight: 600; }
-.content { padding: 40px 32px 56px; max-width: 1280px; }
+.content { padding: 40px 32px 56px; max-width: 1280px; margin-inline: auto; }
 
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .page-head h1 { font-size: 30px; }
