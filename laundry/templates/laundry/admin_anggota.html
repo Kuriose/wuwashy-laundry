@@ -1,6 +1,6 @@
 {% extends 'laundry/panel_base.html' %}
-{% block title %}Anggota Tim{% endblock %}
-{% block crumb %}Anggota Tim{% endblock %}
+{% block title %}Pegawai Laundry{% endblock %}
+{% block crumb %}Pegawai Laundry{% endblock %}
 {% block content %}
 {% if messages %}
 <div class="dp-msgs" role="status">
@@ -10,16 +10,16 @@
 
 <header class="page-head">
   <div>
-    <h1>Anggota tim</h1>
-    <p>{% if total_aktif %}{{ total_aktif }} anggota aktif &middot; {{ kasir_aktif }} kasir dan {{ kurir_aktif }} kurir di {{ outlet_nama }}.{% else %}Belum ada anggota aktif di {{ outlet_nama }}.{% endif %}</p>
+    <h1>Pegawai Laundry</h1>
+    <p>{% if total_aktif %}{{ total_aktif }} Pegawai aktif &middot; {{ kasir_aktif }} kasir dan {{ kurir_aktif }} kurir di {{ outlet_nama }}.{% else %}Belum ada anggota aktif di {{ outlet_nama }}.{% endif %}</p>
   </div>
-  <a class="btn-lime" id="btnTambah" href="{% url 'admin_anggota' %}?tambah=1#form-anggota" aria-controls="form-anggota" aria-expanded="{% if form_terbuka %}true{% else %}false{% endif %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Tambah Anggota</a>
+  <a class="btn-lime" id="btnTambah" href="{% url 'admin_anggota' %}?tambah=1#form-anggota" aria-controls="form-anggota" aria-expanded="{% if form_terbuka %}true{% else %}false{% endif %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Tambah Pegawai</a>
 </header>
 
 <div class="tim-grid{% if form_terbuka %} is-open{% endif %}">
   <section class="card" aria-labelledby="tim-daftar">
-    <h2 id="tim-daftar">Daftar anggota</h2>
-    <p class="card-sub">Akses sesuai peran masing-masing anggota.</p>
+    <h2 id="tim-daftar">Daftar Pegawai</h2>
+    <p class="card-sub">Akses sesuai peran masing-masing pegawai.</p>
 
     {% if anggota %}
     <ul class="tim-list">
@@ -39,9 +39,9 @@
       </li>
       {% endfor %}
     </ul>
-    <p class="tim-foot">Menampilkan seluruh {{ total }} anggota.</p>
+    <p class="tim-foot">Menampilkan seluruh {{ total }} pegawai.</p>
     {% else %}
-    <p class="tim-empty">Belum ada anggota tim. Pilih <strong>Tambah Anggota</strong> untuk memulai.</p>
+    <p class="tim-empty">Belum ada Pegawai laundry. Pilih <strong>Tambah Pegawai</strong> untuk memulai.</p>
     {% endif %}
   </section>
 
@@ -71,7 +71,7 @@
       </div>
 
       <fieldset class="tim-field tim-fieldset">
-        <legend>Peran anggota <span aria-hidden="true">*</span></legend>
+        <legend>Peran pegawai <span aria-hidden="true">*</span></legend>
         <div class="tim-roles">
           {% for r in form.peran %}
           <label class="tim-role-opt" for="{{ r.id_for_label }}">{{ r.tag }}<span>{{ r.choice_label }}</span></label>
