@@ -164,6 +164,11 @@ MAILERS = {
     },
 }
 
+# Belum ada fitur yang mengirim email sungguhan (reset password, dsb.) — tidak ada
+# pemanggilan send_mail di kode. Console backend aman dipakai sementara; silence
+# peringatan produksi untuk ini sampai fitur email benar-benar dibangun.
+SILENCED_SYSTEM_CHECKS = ['mail.E001']
+
 # Nomor WhatsApp admin laundry (format internasional tanpa +)
 WHATSAPP_ADMIN = os.environ.get('WHATSAPP_ADMIN', '6281234567890')
 

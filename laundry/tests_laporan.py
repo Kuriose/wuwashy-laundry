@@ -17,7 +17,8 @@ class UnduhLaporanTests(TestCase):
         call_command('seed_laporan', verbosity=0)
 
     def _url(self, **q):
-        q = {'jenis': 'rekap', 'dari': '2000-01-01', 'sampai': '2100-01-01', **q}
+        # q = {'jenis': 'rekap', 'dari': '2000-01-01', 'sampai': '2100-01-01', **q}
+        q = {'jenis': 'rekap', 'dari': '2026-01-01', 'sampai': '2026-01-31', **q}
         return reverse('admin_laporan_unduh') + '?' + '&'.join(f'{k}={v}' for k, v in q.items())
 
     def test_seed_membuat_data_dan_bisa_dihapus(self):

@@ -80,7 +80,8 @@ class LoginTests(TestCase):
         self.assertContains(r, 'Email atau kata sandi salah')
 
     def test_email_tidak_valid(self):
-        self.assertContains(self._post(username='bukan-email'), 'valid email address')
+        # self.assertContains(self._post(username='bukan-email'), 'valid email address')
+        self.assertContains(self._post(username='bukan-email'), 'Masukkan alamat email yang valid.')
 
     def test_akun_nonaktif_ditolak(self):
         self.user.is_active = False
@@ -158,7 +159,8 @@ class SignUpTests(TestCase):
     def test_halaman_signup_tampil(self):
         r = self.client.get(self.url)
         self.assertContains(r, 'Buat akunmu')
-        self.assertContains(r, 'Confirm password')
+        # self.assertContains(r, 'Confirm password')
+        self.assertContains(r, 'Konfirmasi kata sandi')
 
     def test_link_signup_dari_login(self):
         self.assertContains(self.client.get(reverse('login')), f'href="{self.url}"')
@@ -192,7 +194,8 @@ class SignUpTests(TestCase):
 
     def test_password_tidak_sama(self):
         r = self._post(password2='beda-sekali-123')
-        self.assertContains(r, "passwords don")
+        # self.assertContains(r, "passwords don")
+        self.assertContains(r, 'Kedua kata sandi tidak cocok.')
         self.assertFalse(User.objects.exists())
 
     def test_password_lemah_ditolak(self):
@@ -212,7 +215,8 @@ class SignUpTests(TestCase):
         self.assertContains(r, 'Masukkan alamat email Anda.')
         self.assertContains(r, 'Buat kata sandi Anda.')
         self.assertContains(r, 'Masukkan nomor WhatsApp Anda.')
-        self.assertContains(self._post(email='bukan-email'), 'valid email address')
+        # self.assertContains(self._post(email='bukan-email'), 'valid email address')
+        self.assertContains(self._post(email='bukan-email'), 'Masukkan alamat email yang valid.')
 
     def test_sudah_login_dialihkan(self):
         buat_user()
