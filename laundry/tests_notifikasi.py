@@ -244,10 +244,16 @@ class NotifikasiPoinHadiahTests(TestCase):
         selesaikan(buat_pesanan(self.user, berat=Decimal('10')))  # +120 poin, tidak melewati batas baru
         self.assertEqual(Notifikasi.objects.filter(tipe='hadiah').count(), 1)
 
-    def test_melewati_dua_batas_sekaligus_menyebut_hadiah_tertinggi_tanpa_hadiah_berikutnya(self):
+    def test_melewati_dua_batas_sekaligus_menyebut_hadiah_tertinggi_dan_hadiah_berikutnya(self):
         selesaikan(buat_pesanan(self.user, berat=Decimal('90')))  # 1.080.000 -> 1.080 poin
         h = Notifikasi.objects.get(tipe='hadiah')
-        self.assertEqual(h.isi, 'Saldo 1080 poinmu cukup untuk voucher Rp 10.000 (1000 poin).')
+        self.assertEqual(h.isi, 'Saldo 1080 poinmu cukup untuk voucher Rp 10.000 (1000 poin). '
+                                'Saldo DANA Rp 10.000 perlu 420 poin lagi.')
+
+    def test_saldo_melewati_semua_hadiah_menyebut_hadiah_tertinggi_tanpa_hadiah_berikutnya(self):
+        selesaikan(buat_pesanan(self.user, berat=Decimal('300')))  # 3.600.000 -> 3.600 poin
+        h = Notifikasi.objects.get(tipe='hadiah')
+        self.assertEqual(h.isi, 'Saldo 3600 poinmu cukup untuk saldo GoPay Rp 25.000 (3500 poin).')
 
     def test_kelas_pembuat_poin_dan_hadiah_mewarisi_kelas_dasar(self):
         self.assertTrue(issubclass(NotifPoinMasuk, PembuatNotifikasi))

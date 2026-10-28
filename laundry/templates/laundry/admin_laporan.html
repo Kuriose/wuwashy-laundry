@@ -59,17 +59,17 @@
         <td>{{ lap.periode }}</td>
         <td>{{ lap.dibuat }}</td>
         <td>
-          {# Fitur unduh belum tersedia — tombol placeholder #}
-          <button class="btn-lime btn-unduh" type="button" disabled title="Segera hadir">
-            Unduh Laporan
-          </button>
+          <a class="btn-lime btn-unduh" href="{{ lap.unduh }}" download
+             aria-label="Unduh {{ lap.nama }} sebagai Excel">
+            Unduh Excel
+          </a>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
-<p class="lp-footer">Menampilkan seluruh {{ footer_jumlah }} laporan &middot; Dokumen tersedia dalam format PDF.</p>
+<p class="lp-footer">Menampilkan seluruh {{ footer_jumlah }} laporan &middot; Dokumen diunduh sebagai file Excel (.xlsx).</p>
 {% else %}
 <div class="lp-empty">
   <svg class="ic lp-empty-icon" aria-hidden="true"><use href="#i-report"/></svg>

@@ -53,7 +53,7 @@
         {% for b in batang %}
         <div class="bar-col" title="{{ b.tanggal|date:'j F' }}: {{ b.jumlah }} pesanan">
           <i style="height:{{ b.persen }}%"></i>
-          {% if b.label %}<em>{{ b.tanggal|date:"j M" }}</em>{% endif %}
+          <em>{{ b.tanggal|date:"j M" }}</em>
         </div>
         {% endfor %}
       </div>
@@ -87,7 +87,7 @@
         <thead>
           <tr>
             <th scope="col">ID Pesanan</th><th scope="col">Pelanggan</th><th scope="col">Tanggal</th>
-            <th scope="col">Layanan</th><th scope="col">Total</th><th scope="col">Status</th><th scope="col">Penyerahan</th>
+            <th scope="col">Layanan</th><th scope="col">Total</th><th scope="col">Status</th><th scope="col">Penyerahan</th><th scope="col" class="aksi">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -100,9 +100,10 @@
             <td class="num">Rp {{ o.total }}</td>
             <td><span class="pill st-{{ o.status_key }}"><i></i>{{ o.status_label }}</span></td>
             <td class="muted">{{ o.penyerahan }}</td>
+            <td class="aksi"><a class="btn-detail" href="{% url 'admin_pesanan_detail' o.pk %}" aria-label="Lihat detail pesanan {{ o.resi }}">Lihat detail<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a></td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="empty-row">Belum ada pesanan masuk.</td></tr>
+          <tr><td colspan="8" class="empty-row">Belum ada pesanan masuk.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -113,4 +114,25 @@
     </div>
   </div>
 </section>
+
+<script>
+  // Label tanggal grafik: tampilkan sebanyak yang muat, sembunyikan yang akan bertumpuk (berlaku di semua lebar layar).
+  (function () {
+    var chart = document.querySelector('.chart');
+    if (!chart) return;
+    var labels = Array.prototype.slice.call(chart.querySelectorAll('.bar-col em'));
+    function muatkan() {
+      chart.classList.add('is-fit');
+      labels.forEach(function (e) { e.hidden = false; });
+      var batas = -Infinity;
+      labels.forEach(function (e) {
+        var r = e.getBoundingClientRect();
+        if (r.left >= batas + 8) { batas = r.right; } else { e.hidden = true; }
+      });
+    }
+    muatkan();
+    window.addEventListener('resize', muatkan);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(muatkan);
+  })();
+</script>
 {% endblock %}

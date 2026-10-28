@@ -30,11 +30,12 @@
   {% for h in hadiah %}
   <article class="card reward">
     <div class="reward-art {{ h.warna }}" aria-hidden="true"><svg class="ic"><use href="#i-gift"/></svg></div>
+    <p class="reward-jenis">{{ h.jenis }}</p>
     <h3>{{ h.nama }}</h3>
     <p class="reward-poin"><b>{{ h.poin_fmt }}</b> <small>poin</small></p>
     <details class="reward-detail">
       <summary>{% if h.bisa %}<span class="ok">Bisa ditukar</span>{% else %}Kurang {{ h.kurang }} poin{% endif %} &middot; Lihat detail</summary>
-      <p>Penukaran voucher segera hadir. Saldo poinmu tetap aman dan terus bertambah dari setiap pesanan yang selesai.</p>
+      <p>{{ h.deskripsi }} Fitur penukaran segera hadir. Saldo poinmu tetap aman dan terus bertambah dari setiap pesanan yang selesai.</p>
     </details>
   </article>
   {% empty %}

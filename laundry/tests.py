@@ -673,11 +673,23 @@ class PoinHadiahTests(TestCase):
         self.assertEqual([h['key'] for h in r.context['hadiah']], ['voucher-5000'])
 
     def test_semua_hadiah_bisa_saat_saldo_cukup(self):
-        PoinLog.objects.create(user=self.user, jumlah=1200, saldo=1200, keterangan='Penyesuaian')
+        PoinLog.objects.create(user=self.user, jumlah=4000, saldo=4000, keterangan='Penyesuaian')
         self.client.force_login(self.user)
         r = self.client.get(self.url)
-        self.assertEqual((r.context['target']['key'], r.context['target_persen']), ('voucher-10000', 100))
+        self.assertEqual((r.context['target']['key'], r.context['target_persen']), ('gopay-25000', 100))
+        self.assertEqual(r.context['jumlah_bisa'], len(r.context['hadiah']))
         self.assertContains(r, 'sudah bisa ditukar')
+
+    def test_katalog_hadiah_urut_poin_dan_berisi_ewallet_dan_gratis_laundry(self):
+        from .services import HADIAH
+        self.assertEqual([h['poin'] for h in HADIAH], sorted(h['poin'] for h in HADIAH))
+        keys = {h['key'] for h in HADIAH}
+        self.assertTrue({'dana-10000', 'gopay-10000', 'gratis-laundry'} <= keys)
+        self.client.force_login(self.user)
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Saldo DANA Rp 10.000')
+        self.assertContains(r, 'Saldo GoPay Rp 10.000')
+        self.assertContains(r, 'Gratis Laundry 1x')
 
     def test_riwayat_poin_menampilkan_resi_dan_saldo(self):
         b = self._selesai(layanan='express', berat='5')  # +60

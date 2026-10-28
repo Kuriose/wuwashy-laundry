@@ -64,6 +64,7 @@
           <th scope="col">Total</th>
           <th scope="col">Status</th>
           <th scope="col">Penyerahan</th>
+          <th scope="col" class="aksi">Aksi</th>
         </tr>
       </thead>
       <tbody>
@@ -76,9 +77,10 @@
           <td class="num">Rp {{ o.total }}</td>
           <td><span class="pill st-{{ o.status_key }}"><i></i>{{ o.status_label }}</span></td>
           <td class="muted">{{ o.penyerahan }}</td>
+          <td class="aksi"><a class="btn-detail" href="{% url 'admin_pesanan_detail' o.pk %}" aria-label="Lihat detail pesanan {{ o.resi }}">Lihat detail<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="empty-row">
+        <tr><td colspan="8" class="empty-row">
           {% if filter_aktif %}
             Tidak ada pesanan yang cocok dengan filter ini.
             <a class="link-go" href="?">Atur ulang filter</a>

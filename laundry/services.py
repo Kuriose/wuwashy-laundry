@@ -65,8 +65,21 @@ WILAYAH = {
 MAKS_ALAMAT = 10  # batas alamat tersimpan per akun
 
 
-# Katalog hadiah (sesuai desain "Poin & hadiah"). Urutkan dari poin terkecil.
+# Katalog hadiah (sesuai desain "Poin & hadiah"). WAJIB diurutkan dari poin terkecil: halaman hadiah, progres
+# target, dan notifikasi hadiah mengandalkan urutan ini. 'warna' = kelas CSS gambar kartu (dashboard.css).
 HADIAH = [
-    {'key': 'voucher-5000', 'nama': 'Voucher Rp 5.000', 'poin': 500, 'warna': 'biru'},
-    {'key': 'voucher-10000', 'nama': 'Voucher Rp 10.000', 'poin': 1000, 'warna': 'lime'},
+    {'key': 'voucher-5000', 'nama': 'Voucher Rp 5.000', 'poin': 500, 'warna': 'biru',
+     'jenis': 'Voucher laundry', 'deskripsi': 'Potongan Rp 5.000 untuk satu pesanan laundry berikutnya.'},
+    {'key': 'voucher-10000', 'nama': 'Voucher Rp 10.000', 'poin': 1000, 'warna': 'lime',
+     'jenis': 'Voucher laundry', 'deskripsi': 'Potongan Rp 10.000 untuk satu pesanan laundry berikutnya.'},
+    {'key': 'dana-10000', 'nama': 'Saldo DANA Rp 10.000', 'poin': 1500, 'warna': 'dana',
+     'jenis': 'Saldo e-wallet', 'deskripsi': 'Saldo DANA Rp 10.000 dikirim ke nomor yang terdaftar di akunmu.'},
+    {'key': 'gopay-10000', 'nama': 'Saldo GoPay Rp 10.000', 'poin': 1500, 'warna': 'gopay',
+     'jenis': 'Saldo e-wallet', 'deskripsi': 'Saldo GoPay Rp 10.000 dikirim ke nomor yang terdaftar di akunmu.'},
+    {'key': 'gratis-laundry', 'nama': 'Gratis Laundry 1x', 'poin': 2000, 'warna': 'gratis',
+     'jenis': 'Gratis laundry', 'deskripsi': 'Satu kali cuci layanan Reguler gratis (maksimal 5 pcs).'},
+    {'key': 'dana-25000', 'nama': 'Saldo DANA Rp 25.000', 'poin': 3500, 'warna': 'dana',
+     'jenis': 'Saldo e-wallet', 'deskripsi': 'Saldo DANA Rp 25.000 dikirim ke nomor yang terdaftar di akunmu.'},
+    {'key': 'gopay-25000', 'nama': 'Saldo GoPay Rp 25.000', 'poin': 3500, 'warna': 'gopay',
+     'jenis': 'Saldo e-wallet', 'deskripsi': 'Saldo GoPay Rp 25.000 dikirim ke nomor yang terdaftar di akunmu.'},
 ]

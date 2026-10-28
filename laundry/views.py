@@ -1,9 +1,11 @@
+from datetime import date
 from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, views as auth_views
 from django.contrib.auth.decorators import login_required
+from django.http import Http404, HttpResponse
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -11,7 +13,7 @@ from django.urls import reverse
 from .decorators import admin_required
 from .forms import (EMAIL_SUDAH_ADA, AlamatForm, AnggotaTimForm, BookingForm, EmailLoginForm,
                     NotifikasiForm, ProfilAkunForm, SignUpForm, TagihanForm, UbahKataSandiForm)
-from . import panel, tim
+from . import laporan, panel, tim
 from .pesanan import konteks_lacak_beranda, konteks_pesanan_saya
 from .kotak_notifikasi import KotakNotifikasi
 from .models import Alamat, AnggotaTim, Booking, Notifikasi, PoinLog, Profile, TagihanTerkunci
@@ -347,6 +349,25 @@ def admin_laporan(request):
         **_konteks_panel(request),
         **panel.laporan_tersimpan(),
     })
+
+
+@admin_required
+def admin_laporan_unduh(request):
+    """Unduh satu laporan sebagai file Excel. Parameter: jenis, dari, sampai (YYYY-MM-DD)."""
+    try:
+        jenis = request.GET.get('jenis', '')
+        dari = date.fromisoformat(request.GET.get('dari', ''))
+        sampai = date.fromisoformat(request.GET.get('sampai', ''))
+    except ValueError:
+        raise Http404('Parameter laporan tidak valid.')
+    if jenis not in laporan.DAFTAR or sampai < dari or (sampai - dari).days > 366:
+        raise Http404('Laporan tidak ditemukan.')
+    isi = laporan.buat_laporan(jenis, laporan.pesanan_periode(Booking.objects.all(), dari, sampai), dari, sampai,
+                               outlet=settings.OUTLET_NAMA)
+    respons = HttpResponse(isi.bangun(),
+                           content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    respons['Content-Disposition'] = f'attachment; filename="{isi.nama_berkas}"'
+    return respons
 
 
 def _halaman_anggota(request, anggota=None):

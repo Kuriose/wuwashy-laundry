@@ -6,6 +6,7 @@ import calendar
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDate
+from django.urls import reverse
 from django.utils import formats, timezone
 
 from .models import Booking
@@ -89,8 +90,8 @@ def ringkasan(sekarang=None):
     sumbu = skala_sumbu(max(nilai))
     puncak = sumbu[0] or 1
     batang = [
-        {'tanggal': t, 'jumlah': n, 'persen': round(n * 100 / puncak), 'label': i % 2 == 0}
-        for i, (t, n) in enumerate(zip(tanggal, nilai))
+        {'tanggal': t, 'jumlah': n, 'persen': round(n * 100 / puncak)}
+        for t, n in zip(tanggal, nilai)
     ]
 
     # --- sidebar: seluruh waktu ---
@@ -300,6 +301,11 @@ def _fmt_periode_minggu(dari, sampai):
     )
 
 
+def _tautan_unduh(jenis, dari, sampai):
+    """URL unduh Excel untuk satu laporan (jenis + rentang tanggal)."""
+    return f"{reverse('admin_laporan_unduh')}?{urlencode({'jenis': jenis, 'dari': dari.isoformat(), 'sampai': sampai.isoformat()})}"
+
+
 def laporan_tersimpan(sekarang=None):
     """Data untuk halaman Laporan Tersimpan.
 
@@ -359,21 +365,19 @@ def laporan_tersimpan(sekarang=None):
         # Laporan Ringkasan Operasional
         daftar.append({
             'nama': f'Ringkasan operasional {nama_bln}',
-            'sub': f'{rupiah(n)} pesanan · Dokumen PDF',
+            'sub': f'{rupiah(n)} pesanan · Excel (.xlsx)',
             'periode': periode_str,
             'dibuat': _fmt_tanggal(timezone.localtime(dibuat_ringkasan)),
             'dibuat_sort': dibuat_ringkasan,
+            'unduh': _tautan_unduh('ringkasan', date(tahun, bulan, 1), date(tahun, bulan, hari_akhir)),
         })
 
         # Laporan Pendapatan (hanya bulan selesai)
         if not is_berjalan:
             # total pendapatan = sum berat × harga
-            from .services import LAYANAN
             pesanan_bln = semua.filter(dibuat__gte=bulan_awal, dibuat__lt=bulan_akhir)
-            total_rp = sum(
-                int(b.berat * LAYANAN.get(b.layanan, {}).get('harga', 0))
-                for b in pesanan_bln.only('berat', 'layanan')
-            )
+            # Sama dengan isi file Excel: pendapatan = tagihan pesanan yang sudah selesai.
+            total_rp = sum(b.total for b in pesanan_bln.filter(status='selesai'))
             dibuat_pendapatan = timezone.make_aware(
                 datetime(tahun, bulan + 1 if bulan < 12 else 1,
                          1, 8, 0) if bulan < 12
@@ -381,10 +385,11 @@ def laporan_tersimpan(sekarang=None):
             )
             daftar.append({
                 'nama': f'Pendapatan {nama_bln}',
-                'sub': f'Rp {rupiah(total_rp)} · Dokumen PDF',
+                'sub': f'Rp {rupiah(total_rp)} · Excel (.xlsx)',
                 'periode': periode_str,
                 'dibuat': _fmt_tanggal(timezone.localtime(dibuat_pendapatan)),
                 'dibuat_sort': dibuat_pendapatan,
+                'unduh': _tautan_unduh('pendapatan', date(tahun, bulan, 1), date(tahun, bulan, hari_akhir)),
             })
 
         # Laporan Rekap Pesanan (hanya bulan selesai)
@@ -395,10 +400,11 @@ def laporan_tersimpan(sekarang=None):
             )
             daftar.append({
                 'nama': f'Rekap pesanan {nama_bln}',
-                'sub': f'{rupiah(n)} pesanan · Dokumen PDF',
+                'sub': f'{rupiah(n)} pesanan · Excel (.xlsx)',
                 'periode': periode_str,
                 'dibuat': _fmt_tanggal(timezone.localtime(dibuat_rekap)),
                 'dibuat_sort': dibuat_rekap,
+            'unduh': _tautan_unduh('rekap', date(tahun, bulan, 1), date(tahun, bulan, hari_akhir)),
             })
 
     # Laporan mingguan: minggu-minggu 4 bulan ke belakang
@@ -428,10 +434,11 @@ def laporan_tersimpan(sekarang=None):
         )
         daftar.append({
             'nama': f'Kinerja layanan mingguan',
-            'sub': f'{rupiah(n_mg)} pesanan · Dokumen PDF',
+            'sub': f'{rupiah(n_mg)} pesanan · Excel (.xlsx)',
             'periode': _fmt_periode_minggu(senin, minggu_akhir),
             'dibuat': _fmt_tanggal(timezone.localtime(dibuat_mg)),
             'dibuat_sort': dibuat_mg,
+            'unduh': _tautan_unduh('mingguan', senin, minggu_akhir),
         })
 
     # Urutkan: terbaru di atas

@@ -5,7 +5,7 @@
       <strong>#{{ b.resi }}</strong>
       <small>{{ b.nama_layanan }} &middot; {{ b.berat_efektif|floatformat:"-1" }} {{ b.satuan }} &middot; {{ b.get_status_display }}</small>
     </div>
-    <a class="track-link" href="{% url 'pesanan_saya' %}">Detail pesanan &rarr;</a>
+    <a class="track-link" href="{% url 'cari_pesanan' %}?q={{ b.resi }}" aria-label="Lihat detail pesanan {{ b.resi }}">Lihat detail &rarr;</a>
   </div>
 
   <ol class="steps" aria-label="Tahap pesanan {{ b.resi }}">

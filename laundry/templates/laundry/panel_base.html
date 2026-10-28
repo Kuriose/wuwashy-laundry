@@ -59,7 +59,7 @@
     <nav class="menu" aria-label="Alat ruang kerja">
       {% with cur=request.resolver_match.url_name %}
       <a class="nav-item{% if cur == 'admin_laporan' %} is-active{% endif %}" href="{% url 'admin_laporan' %}"{% if cur == 'admin_laporan' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-report"/></svg>Laporan Tersimpan</a>
-      <a class="nav-item{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} is-active{% endif %}" href="{% url 'admin_anggota' %}"{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-team"/></svg>Anggota Tim</a>
+      <a class="nav-item{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} is-active{% endif %}" href="{% url 'admin_anggota' %}"{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-team"/></svg>Anggota Pegawai</a>
       {% endwith %}
     </nav>
 
