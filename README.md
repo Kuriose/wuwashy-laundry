@@ -177,7 +177,8 @@ Daftar layanan dan harga ada di `SERVICES`, sedangkan katalog hadiah di `HADIAH`
 python manage.py test
 ```
 
-> Semua tes lulus (208 tes). Tes fitur akun, pencarian, tagihan, notifikasi (data), dan konfigurasi produksi ada di `laundry/tests_akun.py`; tes halaman Notifikasi di `laundry/tests_notifikasi.py`.
+> Semua tes lulus (248 tes). Tes fitur akun, pencarian, tagihan, notifikasi (data), dan konfigurasi produksi ada di `laundry/tests_akun.py`; tes halaman Notifikasi di `laundry/tests_notifikasi.py`; tes laporan admin di `laundry/tests_laporan.py`.
+
 
 ## Kolaborasi tim dan mencegah merge conflict
 
@@ -316,15 +317,15 @@ Tanpa file `.env`, aplikasi berjalan dalam mode pengembangan (`DEBUG` aktif). Un
    python manage.py createsuperuser
    ```
 
-3. Jalankan dengan gunicorn (file `Procfile` sudah tersedia untuk Railway, Render, atau Heroku):
+3. Jalankan dengan gunicorn (file `Procfile` sudah tersedia untuk platform ala-Heroku, mis. Render):
 
-   ```bash
-   gunicorn config.wsgi
-   ```
+    ```bash
+    gunicorn config.wsgi
+    ```
 
-Catatan Program:
+ Catatan Program:
 
-- Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
-- File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
-- SQLite cukup untuk uji coba. Untuk produksi isi `DATABASE_URL` (mis. PostgreSQL) dan pasang `psycopg2-binary`.
-- Jangan pakai akun dari `seed_users` di server produksi.
+ - Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
+ - File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
+ - Versi Python dikunci lewat `.python-version` (3.12); sebagian besar platform modern membacanya otomatis saat build.
+ - Jangan pakai akun dari `seed_users` di server produksi.
