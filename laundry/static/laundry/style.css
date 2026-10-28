@@ -29,18 +29,17 @@ img { max-width: 100%; display: block; }
 
 /* navbar */
 .navbar { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 clamp(20px, 5vw, 64px); background: #fff; color: var(--navy); border-bottom: 1px solid var(--line); }
-.page-hero .navbar { inset: 18px auto auto 50%; transform: translateX(-50%); width: min(1280px, calc(100% - 32px)); height: 64px; padding: 0 clamp(16px, 2.4vw, 28px); border-radius: 999px; background: rgba(255,255,255,.26); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: #fff; border-color: transparent; }
-.page-hero .navbar:not(.scrolled):not(.open) .nav-links a { color: var(--lime); }
+.page-hero .navbar { inset: 18px auto auto 50%; transform: translateX(-50%); width: min(1280px, calc(100% - 32px)); height: 64px; padding: 0 clamp(16px, 2.4vw, 28px); border-radius: 999px; background: #fff; color: var(--navy); border: 1px solid var(--line); box-shadow: 0 2px 12px rgba(11,18,48,.08); }
+.page-hero .navbar .icon-btn { color: #4f78d8; }
+.page-hero .navbar .nav-links a.active { border-bottom-color: var(--blue); }
 .page-hero .drawer { top: 72px; right: 0; }
-.page-hero .navbar.open { background: var(--blue); }
+.page-hero .navbar.open { background: var(--blue); color: #fff; }
+.page-hero .navbar.open .icon-btn { color: #fff; }
 .navbar { transition: background .25s, color .25s, box-shadow .25s; }
-.page-hero .navbar.scrolled:not(.open) { background: rgba(255,255,255,.96); color: var(--navy); border-bottom-color: var(--line); box-shadow: 0 2px 12px rgba(11,18,48,.08); }
-.page-hero .navbar.scrolled:not(.open) .icon-btn { color: #4f78d8; }
-.page-hero .navbar.scrolled:not(.open) .nav-links a.active { border-bottom-color: var(--blue); }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; justify-self: start; }
 .brand-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--lime); color: var(--navy); box-shadow: 0 2px 8px rgba(204,255,72,.5); }
 .brand-icon .ic { width: 24px; height: 24px; stroke-width: 2; }
-.brand-name { font-family: 'Condiment', cursive; font-size: 27px; line-height: 1; }
+.brand-name { font-family: 'Condiment', cursive; font-size: 27px; line-height: 1; display: inline-block; transform: translateY(5px); }
 .nav-links { display: flex; gap: clamp(28px, 5vw, 72px); }
 .nav-links a { text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 6px 0; border-bottom: 2px solid transparent; opacity: .75; }
 .nav-links a:hover, .nav-links a.active { opacity: 1; border-bottom-color: var(--lime); }
