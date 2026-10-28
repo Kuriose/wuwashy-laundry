@@ -59,7 +59,7 @@
     <nav class="menu" aria-label="Alat ruang kerja">
       {% with cur=request.resolver_match.url_name %}
       <a class="nav-item{% if cur == 'admin_laporan' %} is-active{% endif %}" href="{% url 'admin_laporan' %}"{% if cur == 'admin_laporan' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-report"/></svg>Laporan Tersimpan</a>
-      <a class="nav-item{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} is-active{% endif %}" href="{% url 'admin_anggota' %}"{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-team"/></svg>Pegawai Laundry</a>
+      <a class="nav-item{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} is-active{% endif %}" href="{% url 'admin_anggota' %}"{% if cur == 'admin_anggota' or cur == 'admin_anggota_edit' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-team"/></svg>Anggota Tim</a>
       {% endwith %}
     </nav>
 
@@ -104,8 +104,15 @@
 <script>
   const body = document.body;
   const toggle = document.querySelector('.menu-btn');
+  const mqDesktop = window.matchMedia('(min-width: 1001px)');
+  // Mobile: sidebar muncul sebagai overlay di atas konten
   const setNav = open => { body.classList.toggle('nav-open', open); toggle.setAttribute('aria-expanded', open); };
-  toggle.addEventListener('click', () => setNav(!body.classList.contains('nav-open')));
+  // Desktop: sidebar collapse/expand, menggeser layout konten
+  const setSidebar = visible => { body.classList.toggle('sidebar-collapsed', !visible); toggle.setAttribute('aria-expanded', visible); };
+  toggle.addEventListener('click', () => {
+    if (mqDesktop.matches) setSidebar(body.classList.contains('sidebar-collapsed'));
+    else setNav(!body.classList.contains('nav-open'));
+  });
   document.querySelector('[data-nav-close]').addEventListener('click', () => setNav(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') setNav(false); });
 

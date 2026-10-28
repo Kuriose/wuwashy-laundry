@@ -14,10 +14,12 @@ button { font: inherit; color: inherit; }
 .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
-.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; }
+.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns .22s ease; }
+body.sidebar-collapsed .app { grid-template-columns: 0 minmax(0, 1fr); }
 
 /* ---------- sidebar ---------- */
-.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 24px 16px 20px; background: var(--navy); color: #fff; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 24px 16px 20px; background: var(--navy); color: #fff; transition: opacity .18s ease, visibility .18s ease; }
+body.sidebar-collapsed .sidebar { padding: 0; opacity: 0; visibility: hidden; pointer-events: none; overflow: hidden; }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 0 0 0; text-decoration: none; }
 .brand-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--lime); color: var(--navy); }
 .brand-icon .ic { width: 24px; height: 24px; stroke-width: 2; }
@@ -41,7 +43,7 @@ button { font: inherit; color: inherit; }
 /* ---------- area utama ---------- */
 .main { min-width: 0; }
 .topbar { display: flex; align-items: center; gap: 16px; height: 80px; padding: 0 32px; border-bottom: 1px solid var(--line); }
-.menu-btn { display: none; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; }
+.menu-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; }
 .crumbs { display: flex; align-items: center; gap: 10px; margin-right: auto; font-size: 14px; color: var(--ink-2); }
 .crumbs strong { color: var(--navy); font-weight: 600; }
 .crumbs .ic { width: 20px; height: 20px; color: var(--navy); }
