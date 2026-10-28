@@ -18,7 +18,33 @@ class TagihanTerkunci(Exception):
     """
 
 
-class Booking(models.Model):
+class TitikPeta(models.Model):
+    """Koordinat lokasi (opsional) yang dipilih pelanggan di peta.
+
+    OOP - Pewarisan: Booking dan Alamat sama-sama punya titik peta, jadi kolom dan perilakunya ditulis sekali
+    di kelas induk abstrak ini (abstract = True: tidak membuat tabel sendiri) lalu diwarisi keduanya.
+    OOP - Enkapsulasi: pembuatan link peta dibungkus di property `link_peta`, bukan tersebar di view/template.
+    """
+
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    @property
+    def punya_titik(self):
+        return self.latitude is not None and self.longitude is not None
+
+    @property
+    def link_peta(self):
+        """Link Google Maps ke titik ini (tanpa API key); string kosong bila belum ada titik."""
+        if not self.punya_titik:
+            return ''
+        return f'https://maps.google.com/?q={self.latitude:.6f},{self.longitude:.6f}'
+
+
+class Booking(TitikPeta):
     STATUS = [
         ('menunggu', 'Menunggu penjemputan'),
         ('dijemput', 'Pakaian dijemput'),
@@ -271,7 +297,7 @@ class Notifikasi(models.Model):
         return f'{self.user} - {self.judul}'
 
 
-class Alamat(models.Model):
+class Alamat(TitikPeta):
     """Alamat antar-jemput milik pelanggan. Satu akun boleh punya banyak alamat, tetapi hanya SATU yang utama.
 
     OOP - Enkapsulasi: aturan "hanya satu alamat utama" dan "alamat pertama otomatis jadi utama" dijaga

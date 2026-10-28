@@ -83,6 +83,20 @@
         </div>
       </div>
 
+      {{ form.latitude }}{{ form.longitude }}
+      <div class="ak-field loc-box">
+        <label for="btn-lokasi">Tentukan lokasi di peta</label>
+        <button type="button" class="loc-btn" id="btn-lokasi" aria-describedby="loc-status">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+          <span>Gunakan lokasi saya saat ini</span>
+        </button>
+        <p class="loc-status" id="loc-status" role="status" aria-live="polite"></p>
+        <div class="loc-map-wrap" id="loc-map-wrap">
+          <div class="loc-map" id="loc-map" role="img" aria-label="Peta titik penjemputan"></div>
+          <p class="loc-hint">Geser pin atau ketuk peta untuk menentukan lokasi, atau gunakan tombol di atas. Alamat, kecamatan, dan kode pos terisi otomatis.</p>
+        </div>
+      </div>
+
       <div class="ak-field{% if form.alamat_lengkap.errors %} has-error{% endif %}">
         <label for="{{ form.alamat_lengkap.id_for_label }}">{{ form.alamat_lengkap.label }}</label>
         {{ form.alamat_lengkap }}
@@ -135,6 +149,21 @@
 
 {% block extra_js %}
 {{ wilayah|json_script:"wilayah-data" }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  .loc-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 2px; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 600; color: var(--navy); background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .loc-btn .ic { width: 16px; height: 16px; flex: none; color: var(--blue); }
+  .loc-btn:hover { background: var(--tint); border-color: var(--blue); }
+  .loc-btn[disabled] { opacity: .6; cursor: progress; }
+  .loc-status { margin: 8px 0 0; font-size: 12px; }
+  .loc-status:empty { display: none; }
+  .loc-status.is-ok { color: #15803d; }
+  .loc-status.is-err { color: #b91c1c; }
+  .loc-map-wrap { margin-top: 12px; }
+  .loc-map { height: 240px; border: 1.5px solid var(--line); border-radius: 14px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; }
+  .loc-hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-2); }
+</style>
 <script>
   // Pilihan kecamatan mengikuti kota yang dipilih.
   (function () {
@@ -150,6 +179,122 @@
         o.textContent = nama || 'Pilih kecamatan';
         kec.appendChild(o);
       });
+    });
+  })();
+
+  // Lokasi saat ini + peta: Geolocation API peramban, peta Leaflet/OpenStreetMap, alamat Nominatim (gratis, tanpa API key).
+  (function () {
+    var data = JSON.parse(document.getElementById('wilayah-data').textContent);
+    var btn = document.getElementById('btn-lokasi');
+    var fAlamat = document.getElementById('{{ form.alamat_lengkap.id_for_label }}');
+    var fLat = document.getElementById('{{ form.latitude.id_for_label }}');
+    var fLng = document.getElementById('{{ form.longitude.id_for_label }}');
+    var fKota = document.getElementById('{{ form.kota.id_for_label }}');
+    var fKec = document.getElementById('{{ form.kecamatan.id_for_label }}');
+    var fPos = document.getElementById('{{ form.kode_pos.id_for_label }}');
+    var status = document.getElementById('loc-status');
+    var mapWrap = document.getElementById('loc-map-wrap');
+    if (!btn || !fAlamat || !fKota || !fKec) return;
+    var label = btn.querySelector('span');
+    var teksAwal = label.textContent;
+    var peta = null, pin = null, permintaan = 0;
+    var AWAL = [-0.5022, 117.1536]; // Samarinda
+    var REF = 'strict-origin-when-cross-origin'; // OSM memblokir tile/permintaan tanpa Referer
+
+    function info(pesan, jenis) { status.textContent = pesan; status.className = 'loc-status' + (jenis ? ' is-' + jenis : ''); }
+    function selesai() { btn.disabled = false; label.textContent = teksAwal; }
+    function norm(t) { return String(t || '').toLowerCase().replace(/^(kecamatan|kota|kabupaten)\s+/, '').trim(); }
+    if (!('geolocation' in navigator)) btn.hidden = true;
+
+    function tampilkanPeta(lat, lng, zoom) {
+      if (typeof L === 'undefined') { mapWrap.hidden = true; return; } // CDN gagal: isi alamat manual
+      if (!peta) {
+        peta = L.map('loc-map', { scrollWheelZoom: false }).setView([lat, lng], zoom);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, referrerPolicy: REF,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(peta);
+        pin = L.marker([lat, lng], { draggable: true }).addTo(peta);
+        pin.on('dragend', function () { var p = pin.getLatLng(); setTitik(p.lat, p.lng, false); });
+        peta.on('click', function (e) { pin.setLatLng(e.latlng); setTitik(e.latlng.lat, e.latlng.lng, false); });
+      } else {
+        pin.setLatLng([lat, lng]);
+        peta.setView([lat, lng], zoom);
+      }
+      peta.invalidateSize();
+    }
+
+    function pilihKotaKecamatan(a) {
+      var kotaCocok = '', kecCocok = '';
+      var kandidatKota = [a.city, a.town, a.municipality, a.county, a.state_district];
+      Object.keys(data).forEach(function (k) {
+        if (!kotaCocok && kandidatKota.some(function (v) { return norm(v) === norm(k); })) kotaCocok = k;
+      });
+      if (!kotaCocok) return false;
+      fKota.value = kotaCocok;
+      fKota.dispatchEvent(new Event('change', { bubbles: true })); // muat ulang pilihan kecamatan
+      var kandidatKec = [a.city_district, a.suburb, a.district, a.subdistrict, a.village, a.neighbourhood];
+      (data[kotaCocok] || []).forEach(function (kec) {
+        if (!kecCocok && kandidatKec.some(function (v) { return norm(v) === norm(kec); })) kecCocok = kec;
+      });
+      fKec.value = kecCocok;
+      return true;
+    }
+
+    function setTitik(lat, lng, pindahPeta) {
+      var id = ++permintaan;
+      fLat.value = lat.toFixed(6); // koordinat disimpan di kolom tersembunyi, terpisah dari teks alamat
+      fLng.value = lng.toFixed(6);
+      var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=id'
+              + '&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
+      if (pindahPeta) tampilkanPeta(lat, lng, 17);
+      info('Mencari alamat\u2026');
+
+      function isi(jalan, a, pesan, jenis) {
+        if (id !== permintaan) return;
+        if (jalan) fAlamat.value = jalan;
+        if (a) {
+          var dalamArea = pilihKotaKecamatan(a);
+          if (fPos && /^\d{5}$/.test(a.postcode || '')) fPos.value = a.postcode;
+          if (!dalamArea) { pesan = 'Lokasi ini di luar area layanan (Samarinda, Balikpapan, Bontang). Pilih kota dan kecamatan secara manual.'; jenis = 'err'; }
+        }
+        info(pesan, jenis);
+        selesai();
+      }
+
+      fetch(url, { headers: { 'Accept': 'application/json' }, referrerPolicy: REF })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (d) {
+          var a = (d && d.address) || null;
+          if (!a) { isi('', null, 'Alamat tidak ditemukan, titik peta tetap tersimpan. Mohon isi alamat secara manual.', 'err'); return; }
+          var jalan = [a.road ? a.road + (a.house_number ? ' No. ' + a.house_number : '') : '', a.suburb || a.neighbourhood || a.village || '']
+            .filter(Boolean).join(', ');
+          isi(jalan, a, 'Lokasi terisi. Periksa dan lengkapi alamat (RT/RW, nomor rumah) bila perlu.', 'ok');
+        })
+        .catch(function () {
+          isi('', null, 'Alamat tidak dapat dimuat, titik peta tetap tersimpan. Mohon isi alamat secara manual.', 'err');
+        });
+    }
+
+    // Peta selalu tampil. Saat mengubah alamat yang sudah punya titik, pin langsung diletakkan di titik itu.
+    var lat0 = parseFloat(fLat.value), lng0 = parseFloat(fLng.value);
+    if (isFinite(lat0) && isFinite(lng0)) tampilkanPeta(lat0, lng0, 17);
+    else tampilkanPeta(AWAL[0], AWAL[1], 14);
+
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      label.textContent = 'Mencari lokasi\u2026';
+      info('Izinkan akses lokasi pada peramban Anda jika diminta.');
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        setTitik(pos.coords.latitude, pos.coords.longitude, true);
+      }, function (err) {
+        info({
+          1: 'Akses lokasi ditolak. Aktifkan izin lokasi pada peramban, atau tentukan titik di peta.',
+          2: 'Lokasi tidak tersedia. Pastikan GPS/internet aktif, atau tentukan titik di peta.',
+          3: 'Waktu pencarian lokasi habis. Coba lagi atau tentukan titik di peta.'
+        }[err.code] || 'Gagal mengambil lokasi. Silakan tentukan titik di peta.', 'err');
+        selesai();
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
     });
   })();
 </script>

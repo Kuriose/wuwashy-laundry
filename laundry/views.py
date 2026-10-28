@@ -73,7 +73,8 @@ def booking(request):
                 f'Layanan: {b.get_layanan_display()}\n'
                 f'Jumlah pakaian: {b.berat.normalize():f} pcs\n'
                 f'Alamat: {b.alamat}\n'
-                f'Catatan: {b.catatan or "-"}'
+                + (f'Titik peta: {b.link_peta}\n' if b.punya_titik else '')
+                + f'Catatan: {b.catatan or "-"}'
             )
             return redirect(f'https://wa.me/{settings.WHATSAPP_ADMIN}?text={quote(pesan)}')
     else:
@@ -87,6 +88,8 @@ def booking(request):
             utama = Alamat.utama_untuk(request.user)  # alamat utama dari halaman Alamat saya
             if utama:
                 awal['alamat'] = utama.baris_alamat
+                if utama.punya_titik:
+                    awal['latitude'], awal['longitude'] = utama.latitude, utama.longitude
         form = BookingForm(initial=awal or None)
     return render(request, 'laundry/booking.html', {'form': form})
 

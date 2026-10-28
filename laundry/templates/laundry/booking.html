@@ -11,13 +11,26 @@
 
       <form method="post" class="form" novalidate>
         {% csrf_token %}
+        {{ form.latitude }}{{ form.longitude }}
         <div class="grid-2">
           <div class="field">{{ form.nama.label_tag }}{{ form.nama }}{{ form.nama.errors }}</div>
           <div class="field">{{ form.whatsapp.label_tag }}{{ form.whatsapp }}{{ form.whatsapp.errors }}</div>
           <div class="field">{{ form.layanan.label_tag }}{{ form.layanan }}{{ form.layanan.errors }}</div>
           <div class="field">{{ form.berat.label_tag }}{{ form.berat }}{{ form.berat.errors }}</div>
         </div>
-        <div class="field">{{ form.alamat.label_tag }}{{ form.alamat }}{{ form.alamat.errors }}</div>
+        <div class="field">
+          {{ form.alamat.label_tag }}{{ form.alamat }}{{ form.alamat.errors }}
+          <button type="button" class="loc-btn" id="btn-lokasi" aria-describedby="loc-status">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+            <span>Gunakan lokasi saya saat ini</span>
+          </button>
+          <p class="loc-status" id="loc-status" role="status" aria-live="polite"></p>
+          <div class="loc-map-wrap" id="loc-map-wrap">
+            <div class="loc-map" id="loc-map" role="img" aria-label="Peta titik penjemputan"></div>
+            <p class="loc-hint">Geser pin atau ketuk peta untuk menentukan titik penjemputan, atau gunakan tombol di atas.</p>
+          </div>
+        </div>
+        <div class="field">{{ form.detail_alamat.label_tag }}{{ form.detail_alamat }}{{ form.detail_alamat.errors }}</div>
         <div class="field">{{ form.catatan.label_tag }}{{ form.catatan }}{{ form.catatan.errors }}</div>
         <button type="submit" class="btn btn-wa"><svg class="ic"><use href="#i-wa"/></svg>Kirim via WhatsApp</button>
       </form>
@@ -25,4 +38,126 @@
     <img class="booking-photo" src="{% static 'laundry/img/booking-picture.jpeg' %}" alt="Seseorang membawa tumpukan pakaian warna-warni">
   </div>
 </main>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  .loc-map-wrap { margin-top: 12px; }
+  .loc-map { height: 240px; border: 1.5px solid var(--navy); border-radius: 12px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; }
+  .loc-hint { margin: 6px 0 0; font-size: 12px; color: #5b6178; }
+  .loc-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 600; color: var(--navy); background: transparent; border: 1.5px solid var(--navy); border-radius: 999px; cursor: pointer; }
+  .loc-btn .ic { width: 16px; height: 16px; flex: none; }
+  .loc-btn:hover { background: rgba(11,18,48,.06); }
+  .loc-btn:focus-visible { outline: 3px solid rgba(30,150,252,.35); }
+  .loc-btn[disabled] { opacity: .6; cursor: progress; }
+  .loc-status { margin: 8px 0 0; font-size: 12px; min-height: 0; }
+  .loc-status:empty { display: none; }
+  .loc-status.is-ok { color: #15803d; }
+  .loc-status.is-err { color: #b91c1c; }
+</style>
+<script>
+(function () {
+  // Lokasi saat ini: Geolocation API peramban + OpenStreetMap (peta Leaflet & alamat Nominatim). Semua gratis, tanpa API key.
+  var btn = document.getElementById('btn-lokasi');
+  var input = document.getElementById('{{ form.alamat.id_for_label }}');
+  var fLat = document.getElementById('{{ form.latitude.id_for_label }}');
+  var fLng = document.getElementById('{{ form.longitude.id_for_label }}');
+  var status = document.getElementById('loc-status');
+  var mapWrap = document.getElementById('loc-map-wrap');
+  if (!btn || !input) return;
+  var label = btn.querySelector('span');
+  var teksAwal = label.textContent;
+  var peta = null, pin = null, permintaan = 0;
+
+  function info(pesan, jenis) {
+    status.textContent = pesan;
+    status.className = 'loc-status' + (jenis ? ' is-' + jenis : '');
+  }
+  function selesai() { btn.disabled = false; label.textContent = teksAwal; }
+
+  var ADA_GPS = 'geolocation' in navigator;
+  if (!ADA_GPS) btn.hidden = true;
+
+  // Titik awal peta (Samarinda) sebelum pelanggan memilih lokasi.
+  var AWAL = [-0.5022, 117.1536];
+
+  function tampilkanPeta(lat, lng, zoom) {
+    if (typeof L === 'undefined') { mapWrap.hidden = true; return; } // CDN gagal dimuat: alamat tetap bisa diketik manual
+    if (!peta) {
+      peta = L.map('loc-map', { scrollWheelZoom: false }).setView([lat, lng], zoom || 17);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        // Django default-nya Referrer-Policy: same-origin; OSM memblokir tile tanpa Referer.
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(peta);
+      pin = L.marker([lat, lng], { draggable: true }).addTo(peta);
+      pin.on('dragend', function () { var p = pin.getLatLng(); setTitik(p.lat, p.lng, false); });
+      peta.on('click', function (e) { pin.setLatLng(e.latlng); setTitik(e.latlng.lat, e.latlng.lng, false); });
+    } else {
+      pin.setLatLng([lat, lng]);
+      peta.setView([lat, lng], zoom || 17);
+    }
+    peta.invalidateSize();
+  }
+
+  // Isi kolom alamat dari koordinat (juga dipakai saat pin digeser).
+  function setTitik(lat, lng, pindahPeta) {
+    var id = ++permintaan;
+    fLat.value = lat.toFixed(6); // koordinat disimpan di kolom tersembunyi, terpisah dari teks alamat
+    fLng.value = lng.toFixed(6);
+    var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=0&accept-language=id'
+            + '&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
+    if (pindahPeta) tampilkanPeta(lat, lng, 17);
+    info('Mencari alamat\u2026');
+
+    function isi(alamat, pesan, jenis) {
+      if (id !== permintaan) return; // sudah ada permintaan yang lebih baru
+      if (alamat) {
+        input.value = alamat;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      info(pesan, jenis);
+      selesai();
+    }
+
+    fetch(url, { headers: { 'Accept': 'application/json' }, referrerPolicy: 'strict-origin-when-cross-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (d) {
+        if (d && d.display_name) {
+          isi(d.display_name, 'Lokasi terisi. Periksa titik di peta, lalu isi detail alamat (RT, no. rumah, gang) bila perlu.', 'ok');
+        } else {
+          isi('', 'Alamat tidak ditemukan, titik peta tetap tersimpan. Mohon tulis alamat lengkap secara manual.', 'err');
+        }
+      })
+      .catch(function () {
+        isi('', 'Nama jalan tidak dapat dimuat, titik peta tetap tersimpan. Mohon tulis alamat lengkap secara manual.', 'err');
+      });
+  }
+
+  // Peta selalu tampil sejak awal. Alamat baru terisi setelah pelanggan menggeser pin / mengetuk peta / memakai tombol lokasi.
+  // Bila sudah ada titik (alamat utama pelanggan, atau form dikirim ulang karena error), pin langsung di titik itu.
+  var lat0 = parseFloat(fLat.value), lng0 = parseFloat(fLng.value);
+  if (isFinite(lat0) && isFinite(lng0)) tampilkanPeta(lat0, lng0, 17);
+  else tampilkanPeta(AWAL[0], AWAL[1], 14);
+
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    label.textContent = 'Mencari lokasi\u2026';
+    info('Izinkan akses lokasi pada peramban Anda jika diminta.');
+
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      setTitik(pos.coords.latitude, pos.coords.longitude, true);
+    }, function (err) {
+      var pesan = {
+        1: 'Akses lokasi ditolak. Aktifkan izin lokasi pada peramban, atau ketik alamat secara manual.',
+        2: 'Lokasi tidak tersedia. Pastikan GPS/internet aktif, atau ketik alamat secara manual.',
+        3: 'Waktu pencarian lokasi habis. Coba lagi atau ketik alamat secara manual.'
+      }[err.code] || 'Gagal mengambil lokasi. Silakan ketik alamat secara manual.';
+      info(pesan, 'err');
+      selesai();
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  });
+})();
+</script>
 {% endblock %}

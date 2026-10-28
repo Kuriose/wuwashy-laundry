@@ -12,14 +12,47 @@ from .models import Alamat, AnggotaTim, Booking, Profile
 from .services import MAKS_ALAMAT, PROVINSI, WILAYAH, normalisasi_wa
 
 
+class _TitikField(forms.DecimalField):
+    """Kolom koordinat tersembunyi. Titik peta hanya pelengkap: nilai rusak diabaikan (jadi kosong)
+    agar tidak membuat seluruh form gagal tanpa pesan yang terlihat."""
+
+    def __init__(self):
+        super().__init__(required=False, max_digits=9, decimal_places=6, widget=forms.HiddenInput())
+
+    def clean(self, value):
+        try:
+            return super().clean(value)
+        except ValidationError:
+            return None
+
+
+def _bersihkan_titik(data):
+    """Titik peta harus lengkap (lat & lng) dan di rentang bumi; kalau tidak, dibuang saja (alamat teks tetap sah)."""
+    lat, lng = data.get('latitude'), data.get('longitude')
+    if lat is None or lng is None or not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        data['latitude'] = data['longitude'] = None
+    return data
+
+
 class BookingForm(forms.ModelForm):
+    # Opsional & tidak punya kolom sendiri: digabung ke `alamat` saat clean() agar kurir menerima satu alamat utuh.
+    detail_alamat = forms.CharField(
+        required=False,
+        max_length=120,
+        label='Detail Alamat (opsional)',
+        widget=forms.TextInput(attrs={'placeholder': 'Contoh: RT 05, No. 12, Gang Mawar, pagar hijau'}),
+    )
+
+    latitude = _TitikField()
+    longitude = _TitikField()
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
         super().__init__(*args, **kwargs)
 
     class Meta:
         model = Booking
-        fields = ['nama', 'whatsapp', 'layanan', 'berat', 'alamat', 'catatan']
+        fields = ['nama', 'whatsapp', 'layanan', 'berat', 'alamat', 'catatan', 'latitude', 'longitude']
         widgets = {
             'nama': forms.TextInput(attrs={'placeholder': 'Masukkan nama Anda...'}),
             'whatsapp': forms.TextInput(attrs={'placeholder': 'Contoh: 08123456xxx', 'inputmode': 'tel'}),
@@ -41,6 +74,14 @@ class BookingForm(forms.ModelForm):
         if len(nomor) < 9:
             raise forms.ValidationError('Nomor WhatsApp tidak valid. Contoh: 08123456789')
         return nomor
+
+    def clean(self):
+        data = _bersihkan_titik(super().clean())
+        detail = ' '.join((data.get('detail_alamat') or '').split())
+        alamat = data.get('alamat')
+        if detail and alamat:
+            data['alamat'] = f'{detail} - {alamat}'
+        return data
 
 
 class EmailLoginForm(AuthenticationForm):
@@ -281,6 +322,8 @@ class AlamatForm(forms.ModelForm):
     (termasuk memindahkan status "alamat utama") dibungkus method simpan().
     """
 
+    latitude = _TitikField()
+    longitude = _TitikField()
     kota = forms.ChoiceField(label='Kota', choices=[(k, k) for k in WILAYAH])
     kecamatan = forms.ChoiceField(label='Kecamatan',
                                   error_messages={'invalid_choice': 'Pilih kecamatan yang sesuai dengan kota.',
@@ -289,7 +332,8 @@ class AlamatForm(forms.ModelForm):
 
     class Meta:
         model = Alamat
-        fields = ['label', 'nama_penerima', 'whatsapp', 'alamat_lengkap', 'kecamatan', 'kota', 'kode_pos', 'catatan_kurir']
+        fields = ['label', 'nama_penerima', 'whatsapp', 'alamat_lengkap', 'kecamatan', 'kota', 'kode_pos', 'catatan_kurir',
+                  'latitude', 'longitude']
         labels = {'label': 'Label alamat', 'nama_penerima': 'Nama penerima', 'whatsapp': 'Nomor WhatsApp',
                   'alamat_lengkap': 'Alamat lengkap', 'kode_pos': 'Kode pos', 'catatan_kurir': 'Catatan untuk kurir'}
         widgets = {
@@ -349,7 +393,7 @@ class AlamatForm(forms.ModelForm):
         return kode
 
     def clean(self):
-        data = super().clean()
+        data = _bersihkan_titik(super().clean())
         if not self.instance.pk and Alamat.objects.filter(user=self._user).count() >= MAKS_ALAMAT:
             raise ValidationError(f'Alamat tersimpan sudah mencapai batas {MAKS_ALAMAT}. Hapus salah satu dulu.')
         return data

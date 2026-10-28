@@ -32,6 +32,7 @@
         <div>
           <p class="dp-strong">{{ b.penyerahan }}</p>
           <p class="dp-line sm">{{ b.alamat }}</p>
+          {% if b.punya_titik %}<p class="dp-line sm"><a href="{{ b.link_peta }}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">Buka titik lokasi di peta &rarr;</a></p>{% endif %}
         </div>
       </div>
     </section>
