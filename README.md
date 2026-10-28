@@ -325,7 +325,11 @@ Tanpa file `.env`, aplikasi berjalan dalam mode pengembangan (`DEBUG` aktif). Un
 
  Catatan Program:
 
- - Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
- - File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
- - Versi Python dikunci lewat `.python-version` (3.12); sebagian besar platform modern membacanya otomatis saat build.
- - Jangan pakai akun dari `seed_users` di server produksi.
+ Catatan Program:
+
+- Dengan `DJANGO_DEBUG=False`, aplikasi menolak berjalan bila `DJANGO_SECRET_KEY` kosong, dan cookie otomatis dibuat aman (HTTPS).
+- File static dilayani oleh WhiteNoise, tanpa perlu Nginx.
+- Versi Python dikunci lewat `.python-version` (3.12); sebagian besar platform modern membacanya otomatis saat build.
+- SQLite cukup untuk uji coba. Untuk produksi isi `DATABASE_URL` (mis. PostgreSQL) — driver `psycopg2-binary` sudah termasuk di `requirements.txt`.
+- Pengiriman email (`MAILERS` di `config/settings.py`) masih pakai console backend (belum ada fitur yang benar-benar mengirim email, mis. reset password). Kalau fitur itu dibangun nanti, ganti ke backend SMTP dan hapus `'mail.E001'` dari `SILENCED_SYSTEM_CHECKS`.
+- Jangan pakai akun dari `seed_users` di server produksi.
