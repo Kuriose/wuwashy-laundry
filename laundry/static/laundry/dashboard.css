@@ -56,7 +56,9 @@ body.sidebar-collapsed .sidebar { padding: 0; opacity: 0; visibility: hidden; po
 /* .content { max-width: 1240px; } */
 .content { max-width: 1240px; margin-inline: auto; }
 
-.topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+/* .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; } */
+.topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; max-width: 1240px; margin-inline: auto; }
+
 .title { margin-right: auto; }
 .title h1 { font-size: 30px; }
 .title p { margin-top: 2px; font-size: 12px; color: var(--ink-2); }
@@ -229,6 +231,8 @@ body.sidebar-collapsed .sidebar { padding: 0; opacity: 0; visibility: hidden; po
 
 .note-box { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 14px; background: var(--tint); font-size: 13px; }
 .note-box .ic { margin-top: 1px; color: var(--blue); }
+.content > .note-box.ak-ok, .content > .note-box.ak-bad { margin-bottom: 24px; }
+
 .order-total { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; font-size: 14px; color: var(--ink-2); }
 .order-total b { font: 700 28px/1 'Outfit', sans-serif; color: var(--navy); }
 .order-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
@@ -328,7 +332,9 @@ a.poin-chip:hover { text-decoration: underline; }
 .ak-card h2 { font-size: 26px; line-height: 1.2; }
 .ak-profile { display: flex; align-items: flex-start; gap: 12px; }
 .ak-ava { display: grid; place-items: center; flex: none; width: 72px; height: 72px; border-radius: 50%; background: #83a7d9; color: var(--navy); font: 600 28px 'Outfit', sans-serif; }
-.ak-who { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; }
+/* .ak-who { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; } */
+.ak-who { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+
 .ak-who strong { font: 400 24px/1.2 'Outfit', sans-serif; }
 .ak-who small { font-size: 11px; color: var(--ink-2); }
 .ak-photo { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 120px; height: 44px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--blue-ink); font-size: 12px; font-weight: 600; }
