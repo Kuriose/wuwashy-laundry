@@ -430,7 +430,9 @@ a.poin-chip:hover { text-decoration: underline; }
 
 
 /* ---------- riwayat pesanan (ukuran mengikuti desain Figma) ---------- */
-.rw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+/* .rw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } */
+.rw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+
 .rw-stat { display: grid; gap: 18px; align-content: start; padding: 24px; border-radius: 24px; }
 .rw-stat h2 { font-size: 26px; line-height: 1.2; }
 .rw-amount { font: 600 32px/40px 'Outfit', sans-serif; color: var(--navy); }
