@@ -26,7 +26,6 @@ KEUNGGULAN = [
     ('fitur-garansi.jpg', 'Garansi Bersih', 'Kurang puas dengan cucian kami? Kami cuci ulang gratis tanpa biaya tambahan.'),
     ('fitur-poin.jpg', 'Poin Royalti', 'Setiap cuci dapat poin! Kumpulkan transaksinya, tukarkan diskon spesial, dan nikmati keuntungan eksklusif.'),
     ('fitur-wangi.jpg', 'Pewangi Premium', 'Parfum khusus berlisensi aman yang tercium harum segar hingga 14 hari pengerjaan.'),
-    ('fitur-tracking.jpg', 'Real-Time Tracking', 'Pantau pergerakan antaran cucian secara langsung di peta secara real-time hingga sampai di depan pintu.'),
     ('fitur-antar.jpg', 'Gratis Penjemputan', 'Tanpa minimum pesanan untuk radius 3km dari outlet terdekat kami.'),
 ]
 
