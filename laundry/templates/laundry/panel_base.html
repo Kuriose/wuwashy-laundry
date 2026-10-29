@@ -67,16 +67,18 @@
       <button class="nav-item" type="button" id="openLogout" aria-haspopup="dialog"><svg class="ic"><use href="#i-logout"/></svg>Keluar</button>
     </div>
   </aside>
-  <div class="scrim" data-nav-close></div>
-
+  
+<div class="scrim" data-nav-close></div>
   <div class="main">
     <header class="topbar">
-      <button class="menu-btn" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
-      <nav class="crumbs" aria-label="Jejak halaman">
-        <span>Dasbor</span><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg><strong aria-current="page">{% block crumb %}Dasbor{% endblock %}</strong>
-      </nav>
-      <p class="today">{% now "l, j F Y" %}</p>
-      <div class="who"><span class="avatar" aria-hidden="true">{{ inisial }}</span><strong>{{ nama }}</strong></div>
+      <div class="topbar-inner">
+        <button class="menu-btn" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
+        <nav class="crumbs" aria-label="Jejak halaman">
+          <span>Dasbor</span><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg><strong aria-current="page">{% block crumb %}Dasbor{% endblock %}</strong>
+        </nav>
+        <p class="today">{% now "l, j F Y" %}</p>
+        <div class="who"><span class="avatar" aria-hidden="true">{{ inisial }}</span><strong>{{ nama }}</strong></div>
+      </div>
     </header>
 
     <main class="content">

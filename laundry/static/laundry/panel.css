@@ -42,7 +42,10 @@ body.sidebar-collapsed .sidebar { padding: 0; opacity: 0; visibility: hidden; po
 
 /* ---------- area utama ---------- */
 .main { min-width: 0; }
-.topbar { display: flex; align-items: center; gap: 16px; height: 80px; padding: 0 32px; border-bottom: 1px solid var(--line); }
+/* .topbar { display: flex; align-items: center; gap: 16px; height: 80px; padding: 0 32px; border-bottom: 1px solid var(--line); } */
+.topbar { height: 80px; border-bottom: 1px solid var(--line); }
+.topbar-inner { display: flex; align-items: center; gap: 16px; height: 100%; padding: 0 32px; max-width: 1280px; margin-inline: auto; }
+
 .menu-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; }
 .crumbs { display: flex; align-items: center; gap: 10px; margin-right: auto; font-size: 14px; color: var(--ink-2); }
 .crumbs strong { color: var(--navy); font-weight: 600; }
@@ -165,7 +168,9 @@ td.muted { color: var(--ink-2); }
   .scrim { position: fixed; inset: 0; z-index: 30; background: rgba(11,18,48,.5); }
   body.nav-open .scrim { display: block; }
   .menu-btn { display: grid; }
-  .topbar { padding: 0 20px; }
+  /* .topbar { padding: 0 20px; } */
+  .topbar-inner { padding: 0 20px; }
+
   .content { padding: 28px 20px 48px; }
 }
 @media (max-width: 640px) {
