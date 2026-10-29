@@ -115,9 +115,6 @@
   </div>
 </div>
 
-{% if hint %}<p class="list-hint muted-hint">{{ hint }}</p>{% endif %}
-{% if baris %}<p class="list-hint">Pilih <a href="{% url 'admin_pesanan_detail' baris.0.pk %}">{{ baris.0.resi }}</a> untuk melihat rincian pesanan.</p>{% endif %}
-
 <script>
   const dp = document.getElementById('range-dp');
   document.addEventListener('click', e => { if (dp.open && !dp.contains(e.target)) dp.open = false; });
