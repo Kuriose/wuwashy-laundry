@@ -160,6 +160,55 @@ Pengunjung yang belum login lalu membuka halaman USER atau ADMIN akan diarahkan 
     └── tests.py
 ```
 
+## Penerapan OOP (4 Pilar)
+
+Proyek ini bukan sekadar kumpulan function Django biasa — beberapa bagian logika yang berulang atau bercabang (notifikasi, laporan Excel, autentikasi, model lokasi) sengaja dirancang memakai class, supaya setiap pilar OOP punya alasan konkret, bukan sekadar formalitas tugas kuliah.
+
+### 1. Abstraksi — sembunyikan "bagaimana", tonjolkan "apa"
+
+| Kelas | Lokasi | Kenapa dipakai |
+|---|---|---|
+| `PembuatNotifikasi(ABC)` | `laundry/notifikasi.py:24` | Pemanggil (`views.py`, `signals.py`) cukup tahu ada method `.buat()` yang menghasilkan notifikasi. Cara menyusun *isi* pesan (`isi()`) wajib diisi tiap jenis notifikasi lewat `@abstractmethod`, jadi tidak mungkin ada subclass yang lupa mengimplementasikannya — Python akan menolaknya saat class itu dibuat instance-nya.
+| `Laporan(ABC)` | `laundry/laporan.py:45` | Sama polanya: kerangka umum laporan (periode, judul, nama berkas) ada di satu tempat; tiap jenis laporan (Ringkasan, Pendapatan, Rekap, Mingguan) tinggal mengisi `isi()`.
+| `Gaya`, `Sel`, `Lembar`, `BukuKerja` | `laundry/ekspor.py` | Detail teknis pustaka `openpyxl` (styling, merge cell, lebar kolom) dibungkus jadi API sederhana, supaya `laporan.py` fokus ke *isi* laporan, bukan cara menulis file `.xlsx`.
+
+**Alasan:** tanpa abstraksi, setiap tempat yang butuh "buat notifikasi" atau "buat laporan" harus tahu detail lengkap tiap jenisnya — rawan `if/elif` yang membengkak tiap kali ada status atau jenis laporan baru.
+
+### 2. Pewarisan — hindari duplikasi kode antar hal yang mirip
+
+| Relasi | Lokasi | Kenapa dipakai |
+|---|---|---|
+| `TitikPeta` (abstract model) → `Booking`, `Alamat` | `laundry/models.py:21`, `:47`, `:300` | `Booking` dan `Alamat` sama-sama punya titik koordinat peta dan property `link_peta`. Daripada menulis kolom `latitude`/`longitude` dan logika link Google Maps dua kali, keduanya ditulis sekali di `TitikPeta` (`Meta.abstract = True`, jadi tidak membuat tabel sendiri) lalu diwarisi.
+| `PembuatNotifikasi` → `NotifBerbasisTeks` → `NotifDiterima`, `NotifDijemput`, ... | `laundry/notifikasi.py:53-99` | Mayoritas notifikasi cuma beda judul & templat teks — `NotifBerbasisTeks` menyediakan `isi()` generik berbasis `templat.format(...)`, subclass di bawahnya tinggal mengisi 2-3 atribut.
+| `Laporan` → `LaporanRingkasan`, `LaporanPendapatan`, `LaporanRekap`, `LaporanMingguan` | `laundry/laporan.py:134-210` | Logika bersama (filter pesanan sah, hitung periode) tinggal sekali di induk.
+| `FormDasar` → `FormProfil` → `ProfilAkunForm`, `UbahKataSandiForm`, `NotifikasiForm` | `laundry/forms.py:224-487` | Validasi dasar form akun ditulis sekali, lalu diwarisi form yang lebih spesifik.
+| `EmailBackend(ModelBackend)` | `laundry/backends.py:5` | Memanfaatkan seluruh mekanisme auth bawaan Django (`user_can_authenticate`, dsb.), cuma mengganti cara mencari user.
+| `TagihanTerkunci(Exception)` | `laundry/models.py:13` | Exception sendiri yang mewarisi `Exception` bawaan Python.
+
+**Alasan:** sebagian besar kelas di atas "mirip tapi tidak sama" — pewarisan memastikan bagian yang sama ditulis sekali, dan perubahan di induk otomatis berlaku ke semua turunannya.
+
+### 3. Polimorfisme — satu pemanggilan, hasil berbeda sesuai kelasnya
+
+| Contoh | Lokasi | Kenapa dipakai |
+|---|---|---|
+| `kirim_notifikasi_status(booking)` | `laundry/notifikasi.py:187-190` | Memanggil `kelas(booking).buat()` tanpa `if/elif` per status pesanan — kelas mana yang dipanggil ditentukan lewat dict `DAFTAR`, dan masing-masing kelas tahu cara menyusun isi pesannya sendiri.
+| `NotifSelesai.isi()` & `.tautan()` meng-override induknya | `laundry/notifikasi.py:107-119` | Notifikasi "pesanan selesai" perlu menambahkan info poin dan tautan "Pesan lagi" yang beda dari notifikasi status lain — cukup override dua method, sisanya tetap pakai milik induk (`super().isi()`).
+| `buat_laporan(jenis, ...)` | `laundry/laporan.py` | Sama seperti notifikasi: memanggil `.bangun()` tanpa peduli jenis laporannya.
+| `EmailBackend.authenticate()` | `laundry/backends.py:11` | Django memanggil `authenticate()` yang sama persis seperti saat memakai `ModelBackend` biasa, tapi implementasinya di sini dicari lewat email, bukan username.
+
+**Alasan:** menambah status notifikasi atau jenis laporan baru cukup menambah satu class + satu baris di dict — kode pemanggil (`views.py`, `signals.py`) tidak perlu disentuh sama sekali, sehingga kecil risiko lupa menambah cabang `if` di suatu tempat.
+
+### 4. Enkapsulasi — sembunyikan detail, ekspos lewat property/method
+
+| Contoh | Lokasi | Kenapa dipakai |
+|---|---|---|
+| `TitikPeta.link_peta` (property) | `laundry/models.py:33-40` | Cara menyusun URL Google Maps (format desimal 6 digit, cek dulu apakah titiknya ada) dibungkus di satu property — pemanggil cukup akses `booking.link_peta`, tidak perlu tahu formatnya.
+| `PembuatNotifikasi._booking`, `NotifSelesai._teks_poin()` | `laundry/notifikasi.py:33`, `:110-113` | Awalan garis bawah (`_`) menandai atribut/method internal yang tidak dimaksudkan diakses dari luar kelas — detail "cara mencari baris poin pesanan ini di `PoinLog`" disembunyikan di satu method kecil.
+| `KotakNotifikasi` | `laundry/kotak_notifikasi.py` | Logika filter, hitung jumlah per kategori, dan pembagian halaman untuk halaman Notifikasi dibungkus jadi satu objek, bukan tersebar sebagai variabel lepas di `views.py`.
+| `RiwayatPesanan` | `laundry/riwayat.py` | Sama polanya untuk halaman Riwayat pesanan pelanggan.
+
+**Alasan:** halaman (`views.py`) jadi lebih pendek dan mudah dibaca karena detail "bagaimana" query/perhitungan dilakukan tersembunyi di dalam kelasnya masing-masing; kalau logikanya perlu diubah, cukup satu tempat yang disentuh.
+
 ## Konfigurasi yang bisa disesuaikan
 
 Dibaca dari environment variable atau file `.env` (contoh: `.env.example`), dengan nilai bawaan untuk pengembangan lokal. Daftar yang paling penting ada di `config/settings.py`:
