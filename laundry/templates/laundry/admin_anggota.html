@@ -11,7 +11,7 @@
 <header class="page-head">
   <div>
     <h1>Pegawai Laundry</h1>
-    <p>{% if total_aktif %}{{ total_aktif }} Pegawai aktif &middot; {{ kasir_aktif }} kasir dan {{ kurir_aktif }} kurir di {{ outlet_nama }}.{% else %}Belum ada anggota aktif di {{ outlet_nama }}.{% endif %}</p>
+    <p>{% if total_aktif %}{{ total_aktif }} Pegawai aktif &middot; {{ kasir_aktif }} kasir dan {{ kurir_aktif }} kurir di {{ outlet_nama }}.{% else %}Belum ada pegawai aktif di {{ outlet_nama }}.{% endif %}</p>
   </div>
   <a class="btn-lime" id="btnTambah" href="{% url 'admin_anggota' %}?tambah=1#form-anggota" aria-controls="form-anggota" aria-expanded="{% if form_terbuka %}true{% else %}false{% endif %}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Tambah Pegawai</a>
 </header>
@@ -81,7 +81,7 @@
         <p class="tim-hint">Kasir mencatat pesanan dan pembayaran. Kurir menangani penjemputan dan pengantaran.</p>
       </fieldset>
 
-      <button class="btn-lime tim-save" type="submit">{% if edit_pk %}Simpan Perubahan{% else %}Simpan Anggota{% endif %}</button>
+      <button class="btn-lime tim-save" type="submit">{% if edit_pk %}Simpan Perubahan{% else %}Simpan Pegawai{% endif %}</button>
       <a class="tim-cancel" href="{% url 'admin_anggota' %}">Batal</a>
     </form>
   </section>
