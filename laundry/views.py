@@ -30,9 +30,9 @@ KEUNGGULAN = [
 ]
 
 TESTIMONI = [
-    ('Kenzo West', 'Rapper', 'avatar-1.jpg', 'Wuwashy beneran ngebantu banget! Tinggal booking dari HP, baju kotor dijemput, baliknya udah wangi banget, rapi tinggal masuk lemari. Express-nya juara!'),
-    ('Vito Corleone', 'Karyawan Swasta', 'avatar-2.jpg', 'Suka banget sama sistem poin setianya. Sambil nyuci tiap minggu dapet poin, tau-tau dapet jatah cuci gratis. Pewangi lavendernya enak sekali dan tahan lama.'),
-    ('Jill Valentine', 'Mahasiswi', 'avatar-3.jpg', 'Harganya bersahabat buat kantong mahasiswa, trus pelayanannya cepat banget jadi gak tegang nungguin baju buat dipakai sidang besok.'),
+    ('Kenzo Arham', 'Rapper', 'avatar-1.jpg', 'Wuwashy beneran ngebantu banget! Tinggal booking dari HP, baju kotor dijemput, baliknya udah wangi banget, rapi tinggal masuk lemari. Express-nya juara!'),
+    ('Bambang Suparman', 'Karyawan Swasta', 'avatar-2.jpg', 'Suka banget sama sistem poin setianya. Sambil nyuci tiap minggu dapet poin, tau-tau dapet jatah cuci gratis. Pewangi lavendernya enak sekali dan tahan lama.'),
+    ('Heru Budiman', 'Mahasiswa', 'avatar-3.jpg', 'Harganya bersahabat buat kantong mahasiswa, trus pelayanannya cepat banget jadi gak tegang nungguin baju buat dipakai sidang besok.'),
 ]
 
 

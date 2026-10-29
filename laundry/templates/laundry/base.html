@@ -30,21 +30,21 @@
     <span class="brand-name">WuWashy</span>
   </a>
   <nav class="nav-links" aria-label="Menu utama">
-    <a href="{% url 'home' %}#home" data-section="home">Home</a>
-    <a href="{% url 'home' %}#about" data-section="about">About</a>
-    <a href="{% url 'home' %}#services" data-section="services">Services</a>
-    <a href="{% url 'home' %}#outlet" data-section="outlet">Outlet Kami</a>
+    <a href="{% url 'home' %}#home" data-section="home">Beranda</a>
+    <a href="{% url 'home' %}#about" data-section="about">Tentang Kami</a>
+    <a href="{% url 'home' %}#services" data-section="services">Layanan Kami</a>
+    <a href="{% url 'home' %}#outlet" data-section="outlet">Gerai Kami</a>
   </nav>
   <div class="nav-actions">
     <a class="icon-btn" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" aria-label="{% if user.is_authenticated %}Akun: {{ user.get_username }}{% else %}Login{% endif %}"{% if user.is_authenticated %} title="Masuk sebagai {{ user.get_username }}"{% endif %}><svg class="ic"><use href="#i-user"/></svg></a>
     <button class="icon-btn nav-toggle" aria-label="Buka menu" aria-expanded="false" aria-controls="drawer"><svg class="ic"><use href="#i-menu"/></svg></button>
   </div>
   <div class="drawer" id="drawer">
-    <a href="{% url 'home' %}#home">Home</a>
-    <a href="{% url 'home' %}#about">About</a>
-    <a href="{% url 'home' %}#services">Services</a>
-    <a href="{% url 'home' %}#outlet">Outlet Kami</a>
-    <a class="btn btn-lime" href="{% url 'booking' %}">Booking Sekarang</a>
+    <a href="{% url 'home' %}#home">Beranda</a>
+    <a href="{% url 'home' %}#about">Tentang Kami</a>
+    <a href="{% url 'home' %}#services">Layanan Kami</a>
+    <a href="{% url 'home' %}#outlet">Gerai Kami</a>
+    <a class="btn btn-lime" href="{% url 'booking' %}">Pesan Sekarang</a>
     {% if user.is_authenticated %}
     <a href="{% url 'dashboard' %}">Dashboard</a>
     <form class="drawer-logout" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Logout</button></form>
