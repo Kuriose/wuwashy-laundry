@@ -18,7 +18,7 @@ class LandingPageTests(TestCase):
         for anchor in ('home', 'about', 'services', 'outlet'):
             self.assertIn(f'id="{anchor}"', html)
             self.assertIn(f'#{anchor}"', html)  # tautan navbar menuju bagian tsb
-        self.assertIn('Outlet Kami', html)
+        self.assertIn('Gerai Kami', html)
         self.assertNotIn('Lacak', html)
 
     def test_url_lama_diarahkan_ke_anchor(self):

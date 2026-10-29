@@ -29,6 +29,8 @@
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
 </defs></svg>
 
 <div class="app">
@@ -42,8 +44,15 @@
       <small>{{ outlet_nama }} &middot; {{ outlet_kota }}</small>
     </div>
 
-    <p class="menu-label">Manajemen pesanan</p>
     {% with cur=request.resolver_match.url_name %}
+    <p class="menu-label">Tampilan Singkat</p>
+    <nav class="menu" aria-label="Ringkasan">
+      <a class="nav-item{% if cur == 'admin_dashboard' %} is-active{% endif %}" href="{% url 'admin_dashboard' %}"{% if cur == 'admin_dashboard' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Ringkasan</a>
+    </nav>
+
+    <p class="menu-label">Manajemen pesanan</p>
+    <nav class="menu" aria-label="Manajemen pesanan">
+    
     <nav class="menu" aria-label="Manajemen pesanan">
       {% block nav %}
       <a class="nav-item{% if cur == 'admin_pesanan' %} is-active{% endif %}" href="{% url 'admin_pesanan' %}"{% if cur == 'admin_pesanan' %} aria-current="page"{% endif %}><svg class="ic" aria-hidden="true"><use href="#i-orders"/></svg>Semua Pesanan<b>{{ sidebar.semua }}</b></a>
