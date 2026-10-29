@@ -170,7 +170,7 @@ MAILERS = {
 SILENCED_SYSTEM_CHECKS = ['mail.E001']
 
 # Nomor WhatsApp admin laundry (format internasional tanpa +)
-WHATSAPP_ADMIN = os.environ.get('WHATSAPP_ADMIN', '6281234567890')
+WHATSAPP_ADMIN = os.environ.get('WHATSAPP_ADMIN', '6282150444113')
 
 # Autentikasi: login dengan email (laundry.backends) + username (untuk /admin/)
 AUTHENTICATION_BACKENDS = [
